@@ -1,127 +1,129 @@
-import { notFound } from "next/navigation"
-import Image from "next/image"
-import Link from "next/link"
-import { getAllPosts, getPostBySlug } from "@/lib/mdx"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { formatDate } from "@/lib/utils"
-import { LikeButton } from "@/components/like-button"
-import { CommentSection } from "@/components/comment-section"
-import { MDXContent } from "@/components/mdx-content"
-import { createServerSupabaseClient } from "@/lib/supabase"
+import { notFound } from "next/navigation";
+import Image from "next/image";
+import { getAllPosts, getPostBySlug } from "@/lib/articles";
+import { formatDate } from "@/lib/utils";
+import { LikeButton } from "@/components/like-button";
+import { CommentSection } from "@/components/comment-section";
+import { MDXContent } from "@/components/mdx-content";
+import { createServerSupabaseClient } from "@/lib/supabase";
+import HeroImage from "@/components/hero-image";
+import { EyeIcon, HeartIcon, MessageCircle } from "lucide-react";
+import { Suspense } from "react";
 
 export async function generateStaticParams() {
-  const posts = await getAllPosts()
+  const posts = await getAllPosts();
 
   return posts.map((post) => ({
     slug: post.slug,
-  }))
+  }));
 }
 
-export async function generateMetadata({ params }: { params: { slug: string } }) {
-  const post = await getPostBySlug(params.slug)
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: string };
+}) {
+  const post = await getPostBySlug(params.slug);
 
   if (!post) {
-    return {}
+    return {};
   }
 
   return {
     title: `${post.title} | DevBlog`,
     description: post.description,
-  }
+  };
 }
 
 async function getPostData(slug: string) {
-  const post = await getPostBySlug(slug)
-
-  if (!post) {
-    return null
-  }
+  const post = await getPostBySlug(slug);
+  if (!post) return null;
 
   try {
-    // Get post data from Supabase
-    const supabase = createServerSupabaseClient()
+    const supabase = createServerSupabaseClient();
 
-    // Get views
-    const { data: postData } = await supabase.from("posts").select("views").eq("slug", slug).single()
+    const [{ data: viewsData }, { count: likes }, { count: comments }] =
+      await Promise.all([
+        supabase.from("posts").select("views").eq("slug", slug).single(),
+        supabase
+          .from("likes")
+          .select("id", { count: "exact", head: true })
+          .eq("post_slug", slug),
+        supabase
+          .from("comments")
+          .select("id", { count: "exact", head: true })
+          .eq("post_slug", slug),
+      ]);
 
-    // Get likes count
-    const { count: likesCount } = await supabase
-      .from("likes")
-      .select("id", { count: "exact", head: true })
-      .eq("post_slug", slug)
-
-    // Get comments count
-    const { count: commentsCount } = await supabase
-      .from("comments")
-      .select("id", { count: "exact", head: true })
-      .eq("post_slug", slug)
-
-    // If post exists in Supabase, use those counts
-    if (postData) {
-      post.views = postData.views
-      post.likes = likesCount || 0
-      post.comments = commentsCount || 0
+    if (viewsData) {
+      post.views = viewsData?.views || 0;
+      post.likes = likes || 0;
+      post.comments = comments || 0;
     }
 
-    // Increment view count (we'll do this asynchronously)
-    incrementViewCount(slug)
+    // Fire-and-forget
+    incrementViewCount(slug, supabase);
 
-    return post
+    return post;
   } catch (error) {
-    console.error("Error fetching post data from Supabase:", error)
-    return post
+    console.error("Error fetching post data from Supabase:", error);
+    return post;
   }
 }
 
-async function incrementViewCount(slug: string) {
+async function incrementViewCount(
+  slug: string,
+  supabase: ReturnType<typeof createServerSupabaseClient>
+) {
   try {
-    // This is fire-and-forget, we don't need to await it
-    fetch("/api/views", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ postId: slug }),
-    })
+    // Read current view count
+    const { data, error: fetchError } = await supabase
+      .from("posts")
+      .select("views")
+      .eq("slug", slug)
+      .single();
+
+    if (fetchError || !data) throw fetchError;
+
+    // Increment by 1
+    const newViews = (data.views || 0) + 1;
+
+    // Write back the new view count
+    const { error: updateError } = await supabase
+      .from("posts")
+      .update({ views: newViews })
+      .eq("slug", slug);
+
+    if (updateError) throw updateError;
   } catch (error) {
-    console.error("Error incrementing view count:", error)
+    console.error("Error incrementing view count:", error);
   }
 }
 
-export default async function BlogPost({ params }: { params: { slug: string } }) {
-  const post = await getPostData(params.slug)
-
-  if (!post) {
-    notFound()
-  }
+export default async function BlogPost({
+  params,
+}: {
+  params: { slug: string };
+}) {
+  const post = await getPostData(params.slug);
+  if (!post) notFound();
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-40 w-full border-b bg-background">
-        <div className="container flex h-16 items-center justify-between py-4">
-          <Link href="/" className="font-bold text-2xl">
-            DevBlog
-          </Link>
-          <ThemeToggle />
-        </div>
-      </header>
-
       <main className="container py-6 md:py-12">
         <article className="prose prose-stone dark:prose-invert mx-auto max-w-3xl">
           {post.coverImage && (
-            <div className="mb-8 overflow-hidden rounded-lg">
-              <Image
-                src={post.coverImage || "/placeholder.svg"}
-                alt={post.title}
-                width={1200}
-                height={630}
-                className="w-full object-cover"
-              />
-            </div>
+            <HeroImage
+              src={post.coverImage}
+              alt={post.title}
+              layoutId={`hero-${post.slug}`}
+            />
           )}
 
           <div className="mb-8 text-center">
-            <h1 className="mb-2 text-3xl font-bold tracking-tight sm:text-4xl">{post.title}</h1>
+            <h1 className="mb-2 text-3xl font-bold tracking-tight sm:text-4xl">
+              {post.title}
+            </h1>
             <div className="flex items-center justify-center gap-4 text-muted-foreground">
               <div className="flex items-center gap-2">
                 <Image
@@ -184,7 +186,17 @@ export default async function BlogPost({ params }: { params: { slug: string } })
 
         <div className="mx-auto max-w-3xl mt-12 border-t pt-8">
           <h2 className="text-2xl font-bold mb-6">Comments</h2>
-          <CommentSection postId={post.slug} comments={post.commentData || []} />
+
+          <Suspense
+            fallback={
+              <p className="text-muted-foreground">Loading comments…</p>
+            }
+          >
+            <CommentSection
+              postId={post.slug}
+              comments={post.commentData || []}
+            />
+          </Suspense>
         </div>
       </main>
 
@@ -196,5 +208,20 @@ export default async function BlogPost({ params }: { params: { slug: string } })
         </div>
       </footer>
     </div>
-  )
+  );
+}
+
+function Stat({ icon, value }: { icon: string; value: number }) {
+  const icons = {
+    eye: <EyeIcon width="16" height="16" />,
+    heart: <HeartIcon width="16" height="16" />,
+    "message-square": <MessageCircle width="16" height="16" />,
+  };
+
+  return (
+    <div className="flex items-center gap-1">
+      {icons[icon as keyof typeof icons]}
+      <span>{value}</span>
+    </div>
+  );
 }
