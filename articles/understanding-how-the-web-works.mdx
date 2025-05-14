@@ -1,0 +1,142 @@
+---
+title: "What Happens When You Type a URL into Your Browser?"
+description: "A friendly walkthrough of how the web works, from DNS and servers to HTTP and rendering."
+date: "2025-05-14"
+author:
+  name: "James Dawson"
+  avatar: "https://pbs.twimg.com/profile_images/1916819575359811584/l-_oX6su_400x400.jpg"
+tags: ["web", "networking", "beginner-friendly"]
+components:
+  ["CodeBlock", "CodeGroup", "LearningGoals", "IpLookup", "UrlVisualizer", "CurrentVisitorIp"]
+---
+
+<LearningGoals
+  goals={[
+    {
+      text: "What happens when you enter a URL into the browser",
+      badge: "Common interview question",
+    },
+    { text: "What is a server?" },
+    { text: "How does the browser find the server?" },
+    { text: "How does the browser talk to the server?" },
+    { text: "How does your browser turn code into a page?" },
+  ]}
+/>
+
+Have you ever wondered what magic happens when you visit your favourite website? Where does the webpage come from? Where does it live? And how does it get to my browser? By the end of this post, you'll understand the basic chain of events that
+happens when you enter a URL like `https://cornhub.com` into your browser and hit enter.
+
+## What is a URL?
+
+A **URL (Uniform Resource Locator)** is the address you **type into your browser to visit a website**. It allows our computer to know where to send the message and ask **"Hey, show me what you got!"**.
+
+<img
+  src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExdjE2eWlhdHcwNmt0a2piYzUzOXlzMnQ1NTFvd2FxMGU2MnRkYnE1MCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/iibEPf8xEDTedJcDJr/giphy.gif"
+  alt="Funny GIF"
+  className="mx-auto"
+  style={{ width: "100%", maxWidth: "600px", borderRadius: "8px" }}
+/>
+- **Protocol**: `https://` - The set of rules the computers agree upon.
+- **Host**: `example.com` - The computer we want to talk to.
+- **Path**: `/cat-pics` - The thing we want to get.
+- **Search** `?query=fluffy` - Extra information we can send.
+
+<UrlVisualizer url="https://example.com/cat-pics?query=fluffy" />
+
+
+## What is a server?
+
+Ok we sent the URL, now what? Well that URL goes to a computer, and in a lot of cases it returns a website. Hopefully with fluffy cat pics. We call a computer that returns a website, files or data over the internet **a server**.
+
+## How do we find the server?
+
+Now if you look up at the URL, you'll see that example.com is the host. This tells the browser which server we want to communicate with. But there's an important step the browser handles behind the scenes: it converts example.com into a unique computer address called an **IP address**. Every device connected to the internet has one, even yours.
+
+<CurrentVisitorIp />
+
+### DNS Lookup
+To do this, the browser performs a DNS lookup — it takes the domain name (example.com) and finds the IP address it's linked to. Try it on your favourite website.
+
+<IpLookup />
+
+
+## Step 3: Establishing a connection (TLS handshake)
+
+Since you're using `https://`, the browser needs to set up a secure connection.
+
+This is done via a **TLS handshake**, which:
+
+- Confirms the server's identity (via certificates)
+- Agrees on an encryption method
+- Exchanges keys securely
+
+Now you have a secure channel.
+
+## Step 4: Sending an HTTP request
+
+The browser sends something like this:
+
+<CodeBlock lang="http">
+  {`GET / HTTP/1.1
+Host: google.com
+User-Agent: Mozilla/5.0
+Accept: text/html
+Connection: keep-alive
+`}
+</CodeBlock>
+
+It’s asking the server at `google.com`: “Please give me the homepage.”
+
+## Step 5: The server responds
+
+A server is just a computer that stores the website’s code and files. It might run something like Node.js, PHP, or Python — and it responds:
+
+<CodeBlock name="Response" lang="http">
+  {`HTTP/1.1 200 OK
+Content-Type: text/html
+Content-Length: 1532
+
+<!DOCTYPE html>
+
+<html>
+  <head>...</head>
+  <body>...</body>
+</html>`}
+</CodeBlock>
+
+The browser receives HTML, CSS, JS, and possibly images or fonts too.
+
+## Step 6: Your browser renders the page
+
+Now the browser:
+
+1. Parses the HTML (turns it into a DOM tree)
+2. Downloads and applies CSS (creates a render tree)
+3. Runs any JavaScript
+4. Renders the visual page on screen
+
+You see the fully loaded `google.com` homepage!
+
+## In Summary
+
+When you type a URL and hit enter:
+
+1. DNS resolves the domain to an IP address
+2. A secure connection is made via TLS
+3. A request is sent to the server
+4. The server replies with files
+5. Your browser turns them into a webpage
+
+## Bonus: What is a server, really?
+
+A "server" is just a computer that:
+
+- Waits for requests
+- Responds with content
+- Can be hosted anywhere: AWS, Google Cloud, a Raspberry Pi...
+
+---
+
+That’s it! You’ve just walked through how the modern web works from browser to server and back.
+
+Let me know if you want a printable PDF version of this, or if you'd like to turn it into a mini course!

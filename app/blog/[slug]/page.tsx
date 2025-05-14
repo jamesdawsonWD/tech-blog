@@ -1,21 +1,31 @@
 import { notFound } from "next/navigation";
-import Image from "next/image";
+import { evaluate } from "@mdx-js/mdx";
+import * as runtime from "react/jsx-runtime";
 import { getAllPosts, getPostBySlug } from "@/lib/articles";
-import { formatDate } from "@/lib/utils";
-import { LikeButton } from "@/components/like-button";
-import { CommentSection } from "@/components/comment-section";
-import { MDXContent } from "@/components/mdx-content";
 import { createServerSupabaseClient } from "@/lib/supabase";
-import HeroImage from "@/components/hero-image";
-import { EyeIcon, HeartIcon, MessageCircle } from "lucide-react";
+import ViewCount from "@/components/view-conter";
+import LikeCount from "@/components/like-count";
+import { LikeButton } from "@/components/like-button";
+import { Badge } from "@/components/ui/badge";
+import Image from "next/image";
 import { Suspense } from "react";
+import { formatDate } from "@/lib/utils";
+import { CodeGroup } from "@/components/mdx/code-group"; // adjust path as needed
+import { CodeBlock } from "@/components/mdx/code-block"; // adjust path as needed
+import { CodeSandpack } from "@/components/mdx/code-sandpack"; // adjust path as needed
+import { ConicGradient } from "@/components/raycast/conic-gradient/conic-gradient";
+import { ConicStatic } from "@/components/raycast/conic-static/conic-static";
+import { RaycastButton } from "@/components/raycast/button/raycast-button";
+import Link from "next/link";
+import { ChevronLeft } from "lucide-react";
+import LearningGoals from "@/components/mdx/learning-goals";
+import IpLookup from "@/components/understanding-how-the-web-works/ip-lookup";
+import UrlVisualizer from "@/components/understanding-how-the-web-works/url-visualizer";
+import CurrentVisitorIp from "@/components/understanding-how-the-web-works/current-visitor-ip";
 
 export async function generateStaticParams() {
   const posts = await getAllPosts();
-
-  return posts.map((post) => ({
-    slug: post.slug,
-  }));
+  return posts.map((post) => ({ slug: post.slug }));
 }
 
 export async function generateMetadata({
@@ -30,74 +40,10 @@ export async function generateMetadata({
   }
 
   return {
-    title: `${post.title} | DevBlog`,
+    title: `${post.title} | mwd`,
     description: post.description,
+    tags: post.tags,
   };
-}
-
-async function getPostData(slug: string) {
-  const post = await getPostBySlug(slug);
-  if (!post) return null;
-
-  try {
-    const supabase = createServerSupabaseClient();
-
-    const [{ data: viewsData }, { count: likes }, { count: comments }] =
-      await Promise.all([
-        supabase.from("posts").select("views").eq("slug", slug).single(),
-        supabase
-          .from("likes")
-          .select("id", { count: "exact", head: true })
-          .eq("post_slug", slug),
-        supabase
-          .from("comments")
-          .select("id", { count: "exact", head: true })
-          .eq("post_slug", slug),
-      ]);
-
-    if (viewsData) {
-      post.views = viewsData?.views || 0;
-      post.likes = likes || 0;
-      post.comments = comments || 0;
-    }
-
-    // Fire-and-forget
-    incrementViewCount(slug, supabase);
-
-    return post;
-  } catch (error) {
-    console.error("Error fetching post data from Supabase:", error);
-    return post;
-  }
-}
-
-async function incrementViewCount(
-  slug: string,
-  supabase: ReturnType<typeof createServerSupabaseClient>
-) {
-  try {
-    // Read current view count
-    const { data, error: fetchError } = await supabase
-      .from("posts")
-      .select("views")
-      .eq("slug", slug)
-      .single();
-
-    if (fetchError || !data) throw fetchError;
-
-    // Increment by 1
-    const newViews = (data.views || 0) + 1;
-
-    // Write back the new view count
-    const { error: updateError } = await supabase
-      .from("posts")
-      .update({ views: newViews })
-      .eq("slug", slug);
-
-    if (updateError) throw updateError;
-  } catch (error) {
-    console.error("Error incrementing view count:", error);
-  }
 }
 
 export default async function BlogPost({
@@ -105,123 +51,110 @@ export default async function BlogPost({
 }: {
   params: { slug: string };
 }) {
-  const post = await getPostData(params.slug);
+  const post = await getPostBySlug(params.slug);
   if (!post) notFound();
+
+  const AllClientComponents = {
+    CodeGroup,
+    CodeBlock,
+    CodeSandpack,
+    ConicGradient,
+    ConicStatic,
+    RaycastButton,
+    LearningGoals,
+    IpLookup,
+    UrlVisualizer,
+    CurrentVisitorIp
+  };
+
+  type ComponentName = keyof typeof AllClientComponents;
+
+  const usedComponentNames = post.components as ComponentName[];
+
+  const ClientComponents = Object.fromEntries(
+    usedComponentNames.map((name) => [name, AllClientComponents[name]])
+  );
+
+  // const supabase = createServerSupabaseClient();
+  // const [{ data: viewsData }, { count: likes }] = await Promise.all([
+  //   supabase.from("posts").select("views").eq("slug", params.slug).single(),
+  //   supabase.from("likes").select("id", { count: "exact", head: true }).eq("post_slug", params.slug),
+  // ]);
+
+  // post.views = viewsData?.views || 0;
+  // post.likes = likes || 0;
+
+  // Evaluate MDX string to a component
+  const { default: MDXContent, ...exports } = await evaluate(post.content, {
+    ...runtime,
+    baseUrl: import.meta.url,
+  });
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="container py-6 md:py-12">
-        <article className="prose prose-stone dark:prose-invert mx-auto max-w-3xl">
-          {post.coverImage && (
-            <HeroImage
+      <main className="container max-w-3xl py-6 lg:py-12">
+        <div className="flex w-full justify-between items-center">
+          <Link href="/" className="text-sm flex gap-1 items-center">
+            <ChevronLeft className="size-4" />
+            Back
+          </Link>
+          <Badge variant="secondary">
+            <div className="flex items-center gap-1.5">
+              <Image
+                src={post.author.avatar || "/placeholder.svg"}
+                alt={post.author.name}
+                width={24}
+                height={24}
+                className="rounded-full"
+              />
+              <span>{post.author.name}</span>
+            </div>
+          </Badge>
+        </div>
+
+        <h1 className="text-3xl font-bold mt-2 mb-8 tracking-tight text-center md:text-left sm:text-3xl">
+          {post.title}
+        </h1>
+
+        {post.coverImage && (
+          <div className="relative w-full h-[300px] md:h-[500px] lg:h-[700px] mb-4 rounded-xl overflow-hidden">
+            <Image
               src={post.coverImage}
-              alt={post.title}
-              layoutId={`hero-${post.slug}`}
+              alt="Cover Image"
+              fill
+              className="object-cover"
+              priority
             />
-          )}
-
-          <div className="mb-8 text-center">
-            <h1 className="mb-2 text-3xl font-bold tracking-tight sm:text-4xl">
-              {post.title}
-            </h1>
-            <div className="flex items-center justify-center gap-4 text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <Image
-                  src={post.author.avatar || "/placeholder.svg"}
-                  alt={post.author.name}
-                  width={32}
-                  height={32}
-                  className="rounded-full"
-                />
-                <span>{post.author.name}</span>
-              </div>
-              <span>•</span>
-              <time dateTime={post.date}>{formatDate(post.date)}</time>
-            </div>
           </div>
+        )}
 
-          <div className="mb-8 flex items-center justify-between rounded-lg border p-4">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-1">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="lucide lucide-eye"
-                >
-                  <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
-                <span>{post.views} views</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="lucide lucide-message-square"
-                >
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                </svg>
-                <span>{post.comments} comments</span>
-              </div>
-            </div>
-            <LikeButton postId={post.slug} initialLikes={post.likes} />
+        <div className="flex mb-8 flex-wrap justify-between w-full  gap-y-2 gap-x-4 text-sm text-slate-800">
+          <Badge variant="secondary">
+            <time dateTime={post.date}>{formatDate(post.date)}</time>
+          </Badge>
+          <div className="space-x-2">
+            {post.tags.map((tag) => (
+              <Badge key={tag} variant="secondary" className="capitalize">
+                {tag}
+              </Badge>
+            ))}
           </div>
+        </div>
+        <div className="mb-8 sticky right-0 flex items-center justify-between">
+          {/* <div className="flex items-center gap-4">
+            <Suspense fallback={<span>Loading views...</span>}>
+              <ViewCount slug={params.slug} />
+            </Suspense>
+            <Suspense fallback={<span>Loading likes...</span>}>
+              <LikeCount slug={params.slug} />
+            </Suspense>
+          </div> */}
+        </div>
 
-          <MDXContent content={post.content} />
+        <article className="prose prose-stone dark:prose-invert mx-auto max-w-3xl">
+          <MDXContent components={ClientComponents} />
         </article>
-
-        <div className="mx-auto max-w-3xl mt-12 border-t pt-8">
-          <h2 className="text-2xl font-bold mb-6">Comments</h2>
-
-          <Suspense
-            fallback={
-              <p className="text-muted-foreground">Loading comments…</p>
-            }
-          >
-            <CommentSection
-              postId={post.slug}
-              comments={post.commentData || []}
-            />
-          </Suspense>
-        </div>
       </main>
-
-      <footer className="border-t py-6 md:py-0">
-        <div className="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">
-          <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
-            Built with Next.js, MDX, and Tailwind CSS
-          </p>
-        </div>
-      </footer>
-    </div>
-  );
-}
-
-function Stat({ icon, value }: { icon: string; value: number }) {
-  const icons = {
-    eye: <EyeIcon width="16" height="16" />,
-    heart: <HeartIcon width="16" height="16" />,
-    "message-square": <MessageCircle width="16" height="16" />,
-  };
-
-  return (
-    <div className="flex items-center gap-1">
-      {icons[icon as keyof typeof icons]}
-      <span>{value}</span>
     </div>
   );
 }

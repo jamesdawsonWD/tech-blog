@@ -1,0 +1,57 @@
+.container {
+  display: flex;
+  justify-content: center;
+  margin-block: 5rem;
+}
+
+.muted {
+  position: relative;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.5px;
+  color: #9c9c9d;
+  white-space: nowrap;
+}
+
+.announcement {
+  padding: 1px;
+  background:
+    conic-gradient(
+      from calc(var(--rotation) - 80deg) at var(--position) 15px,
+      transparent 0,
+      #eca5a7 20%,
+      transparent 25%
+    ),
+    #452324;
+  border-radius: 43px;
+  box-shadow: 0 0 20px 0 rgba(245, 48, 107, 0.1);
+  transition: all 0.2s ease;
+  transform: translateZ(0);
+}
+
+.announcement:hover {
+  background-color: #833637;
+  box-shadow: 0 0 20px 3px rgba(245, 49, 108, 0.25);
+}
+
+.announcementLink {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 13px;
+  align-items: center;
+  height: 30px;
+  padding: 4px 12px;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  background: #130d0e;
+  border-radius: 1000px;
+  color: white;
+  text-decoration: none;
+}
+
+.animate {
+  animation:
+    moveAnimation 0.64s linear 3s infinite,
+    rotateAnimation 0.64s linear 3s infinite;
+}

@@ -16,16 +16,15 @@ export default function HeroImage({ src, alt }: HeroImageProps) {
   return (
     <AnimatePresence>
       <motion.div
-        className="mb-8 overflow-hidden rounded-lg"
+        className="mb-8 overflow-hidden rounded-xl relative"
         initial={{ opacity: 0 }}
         animate={{ opacity: loaded ? 1 : 0 }}
-        transition={{ duration: 0.6 }}
+        transition={{ duration: 0.3 }}
       >
         <Image
           src={src}
           alt={alt}
-          width={1200}
-          height={630}
+          fill
           className="w-full object-cover"
           priority
           onLoad={() => setLoaded(true)}

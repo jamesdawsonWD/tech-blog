@@ -6,72 +6,81 @@ author:
   name: "James Dawson"
   avatar: "https://pbs.twimg.com/profile_images/1916819575359811584/l-_oX6su_400x400.jpg"
 coverImage: "/resendandnuxt.png"
+tags: ["design", "css", "html"]
+components: ["CodeBlock", "CodeGroup", "ConicGradient", "ConicStatic", "RaycastButton"]
+
 ---
 
-Ok, so I have been getting really inspired recently by the [raycast landing page](https://raycast.com). The whole site is really beautiful but there is one thing that I am really wanted to learn how to make this cool button effect.
+Ok, so I have been getting really inspired recently by the [raycast landing page](https://raycast.com). The whole site is really beautiful but there is one thing that I really wanted to learn how to make: this cool button effect.
 
 It took me a lot longer than I want to admit to get this to finally work and the process was super fascinating. Let's dive in!
 
+<RaycastButton />
+
 ## Conic gradients
 
-This button has a lot of different moving parts but lets look at the most basic element. The conic gradient. What's a conic gradient?
+This button has a lot of different moving parts but let’s look at the most basic element: the conic gradient. What's a conic gradient?
 
-`The conic-gradient() CSS function creates an image consisting of a gradient with color transitions rotated around a center point (rather than radiating from the center). Example conic gradients include pie charts and color wheels.`
+> The `conic-gradient()` CSS function creates an image consisting of a gradient with color transitions rotated around a center point (rather than radiating from the center). Example conic gradients include pie charts and color wheels.
 
-Let's look at a basic conic gradient.
+Let’s look at a basic conic gradient.
 
-```css
+<CodeBlock name="basic-conic-gradient.css" lang="css">
+{`
 .basic-conic-gradient {
-  background: conic-gradient(red, orange, yellow, green, blue);
+    background: conic-gradient(red, orange, yellow, green, blue);
 }
-```
+`}
+</CodeBlock>
 
-::basic-conic-gradient
-::
+<ConicGradient />
 
 Pretty! Now let's manipulate this conic to match the trailing effect of the button.
 
-```css
+<CodeBlock name="basic-conic.css" lang="css">
+{`
 .basic-conic {
-  background: conic-gradient(
+    background: conic-gradient(
       from -80deg at 30px 15px,
       transparent 0,
       #eca5a7 20%,
       transparent 25%
     ), #452324;
 }
-```
+`}
+</CodeBlock>
 
-::raycast-conic-static
-::
+<ConicStatic />
 
-What we have here is a conic that has been rotated `-80deg` (Which is why the gradient is pointing to the top left corner and not straight up). It is positioned at `x: 30px y:15px`, this is why it is moved in slightly from the top left corner as well. The rest of the code is implementing the actual conic gradient so it goes from `transparent` to `#eca5a7` to `transparent` again at each stop and finally `#452324`
+What we have here is a conic that has been rotated `-80deg`, positioned at `30px 15px`, and layered over a solid base color. The gradient is defined to start transparent, flash to `#eca5a7`, and return to transparent again.
 
 ## The animation breakdown
 
-::raycast-conic-start
-::
+::raycast-conic-start::
 
-Now we can get into the fun stuff, the animation. We need to get this gradient to move all the way round the button. There are too options for this, you can animate it in javascript or you can alter the properties of the conic itself. The implementation that I did uses pure css, though it is using the [@property](https://developer.mozilla.org/en-US/docs/Web/CSS/@property) which is a css at-rule from the [Houdini API ](https://developer.mozilla.org/en-US/docs/Web/API/Houdini_APIs) and is not available on all legacy browsers, so check it out before you add it to production.
+Now we can get into the fun stuff: the animation.
 
-Let's get the gradient moving back and forward first and then we can worry about the rotation after that. Check out the following example.
+There are two options for animating this: JavaScript or CSS. I used CSS via the [`@property`](https://developer.mozilla.org/en-US/docs/Web/CSS/@property) rule from the [Houdini API](https://developer.mozilla.org/en-US/docs/Web/API/Houdini_APIs). It’s not supported on every browser, so double check if you’re deploying this in production.
 
-```html
-<div class="basic-conic animate"></div>
-```
+First let’s animate the **position** of the conic:
 
-```css
+<CodeBlock name="conic-move.html" lang="html">
+{`<div class="basic-conic animate"></div>`}
+</CodeBlock>
+
+<CodeBlock name="conic-move.css" lang="css">
+{`
 @property --position {
-  syntax: "<length>";
-  initial-value: 0;
-  inherits: false;
+    syntax: "<length>";
+    initial-value: 0;
+    inherits: false;
 }
 
 .basic-conic {
-  width: 243px;
-  height: 33px;
-  border-radius: 10000px;
-  background: conic-gradient(
+    width: 243px;
+    height: 33px;
+    border-radius: 10000px;
+    background: conic-gradient(
       from -80deg at var(--position) 15px,
       transparent 0,
       #eca5a7 20%,
@@ -80,38 +89,39 @@ Let's get the gradient moving back and forward first and then we can worry about
 }
 
 .animate {
-  animation: moveAnimation -0.64s linear 3s infinite;
+    animation: moveAnimation -0.64s linear 3s infinite;
 }
 
 @keyframes moveAnimation {
-  0% {
-    --position: 20px;
-  }
-  32.8228% {
-    --position: 243px;
-  }
-  50% {
-    --position: 243px;
-  }
-  82.8228% {
-    --position: 20px;
-  }
-  100% {
-    --position: 20px;
-  }
+    0% {
+      --position: 20px;
+    }
+    32.8228% {
+      --position: 243px;
+    }
+    50% {
+      --position: 243px;
+    }
+    82.8228% {
+      --position: 20px;
+    }
+    100% {
+      --position: 20px;
+    }
 }
-```
+`}
+</CodeBlock>
 
-::raycast-conic-moving-position
-::
+::raycast-conic-moving-position::
 
-Are you starting to see it? The animation moves the the gradient from one edge to the other, it then pauses, and moves back. The pause will allow us to execute the rotation before the gradient moves back to the start of the button. Check out the rotation code below.
+The gradient animates from one side to the other, pauses, and moves back. Next up: rotation!
 
-```html
-<div class="basic-conic animate"></div>
-```
+<CodeBlock name="conic-rotate.html" lang="html">
+{`<div class="basic-conic animate"></div>`}
+</CodeBlock>
 
-```css
+<CodeBlock name="conic-rotate.css" lang="css">
+{`
 @property --position {
   syntax: "<length>";
   initial-value: 0;
@@ -122,16 +132,15 @@ Are you starting to see it? The animation moves the the gradient from one edge t
   width: 320px;
   height: 80px;
   background: conic-gradient(
-      from -80deg at at var(--position) 15px,
-      transparent 0,
-      #eca5a7 20%,
-      transparent 25%
-    ), #452324;
+    from -80deg at var(--position) 15px,
+    transparent 0,
+    #eca5a7 20%,
+    transparent 25%
+  ), #452324;
 }
 
 .animate {
-  animation: moveAnimation -0.64s linear 3s infinite, rotateAnimation -0.64s
-      linear 3s infinite;
+  animation: moveAnimation -0.64s linear 3s infinite, rotateAnimation -0.64s linear 3s infinite;
 }
 
 @keyframes rotateAnimation {
@@ -169,30 +178,24 @@ Are you starting to see it? The animation moves the the gradient from one edge t
     --position: 20px;
   }
 }
-```
+`}
+</CodeBlock>
 
-::raycast-conic-moving-and-rotating
-::
+::raycast-conic-moving-and-rotating::
 
-It is starting to really come together! As you can see there are now two `keyframes` executing this and the timing is very precise. Once the move animation reaches the end, the rotate animation executes, and round and round it goes.
+Now we’ve got a smooth loop: the gradient moves, then rotates, then moves back, then rotates again. Nearly there.
 
-Now all we need to do is add the masking layer with our actual button ontop. We will also add a cool glowing effect and we should have the final component!
+## Final layer and glow effect
 
-```html
-<a
-  class="announcement-link no-underline"
-  rel="external"
-  href="/blog/more-ai-models"
->
+Let’s add the button UI layer and a bit of glow on hover.
+
+<CodeBlock name="button.html" lang="html">
+{`
+<a class="announcement-link no-underline" rel="external" href="/blog/more-ai-models">
   <span class="no-underline !font-white">Pretty cool?</span>
-  <span class="muted flex no-underline"
-    >Click me and see
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 16 16"
-      class="w-4"
-    >
+  <span class="muted flex no-underline">
+    Click me and see
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 16" class="w-4">
       <path
         stroke="currentColor"
         stroke-linecap="round"
@@ -203,9 +206,11 @@ Now all we need to do is add the masking layer with our actual button ontop. We 
     </svg>
   </span>
 </a>
-```
+`}
+</CodeBlock>
 
-```css
+<CodeBlock name="button.css" lang="css">
+{`
 .announcement:hover {
   background-color: #833637;
   box-shadow: 0 0 20px 3px rgba(245, 49, 108, 0.25);
@@ -226,9 +231,9 @@ Now all we need to do is add the masking layer with our actual button ontop. We 
 .announcement > svg {
   width: 10px;
 }
-```
+`}
+</CodeBlock>
 
-And voila! Here we have a trailing effect made entirely with css!
+::raycast-button::
 
-::raycast-button
-::
+And that’s it! You’ve got a trailing conic gradient animation fully done in CSS, wrapped in a clickable glowing button. No JS needed 💅

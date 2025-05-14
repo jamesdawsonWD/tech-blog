@@ -114,3 +114,98 @@
 .mdx-content hr {
   @apply my-8 border-t border-gray-200 dark:border-gray-800;
 }
+
+.prose pre {
+  @apply bg-black text-white  p-6 rounded-xl overflow-x-auto;
+}
+
+.prose code {
+  @apply text-sm px-2 py-1 bg-stone-700 text-stone-50 rounded-lg;
+}
+
+.prose a {
+  @apply text-lime-600 hover:text-lime-700;
+}
+.prose code::before,
+.prose code::after {
+  content: none;
+}
+
+/* Override for code inside pre to avoid styling it */
+.prose pre code {
+  @apply p-0 bg-transparent text-inherit;
+}
+
+.code-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #78716c #44403c; /* thumb color and track color */
+}
+
+.code-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.code-scrollbar::-webkit-scrollbar-track {
+  background: #44403c; /* track */
+}
+
+.code-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #525252; /* thumb */
+  border-radius: 4px;
+  border: 2px solid #44403c;
+}
+
+@property --rotation {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@property --position {
+  syntax: "<length>";
+  initial-value: 0;
+  inherits: false;
+}
+
+:root {
+  --r2: 0deg;
+  --key-bg-end-color: #0d0d0d;
+  --key-bg-start-color: #121212;
+  --x: 0;
+}
+
+@keyframes rotateAnimation {
+  0% {
+    --rotation: 0deg;
+  }
+  32.8228% {
+    --rotation: 0deg;
+  }
+  50% {
+    --rotation: 180deg;
+  }
+  82.8228% {
+    --rotation: 180deg;
+  }
+  100% {
+    --rotation: 360deg;
+  }
+}
+
+@keyframes moveAnimation {
+  0% {
+    --position: 20px;
+  }
+  32.8228% {
+    --position: 206px;
+  }
+  50% {
+    --position: 206px;
+  }
+  82.8228% {
+    --position: 20px;
+  }
+  100% {
+    --position: 20px;
+  }
+}

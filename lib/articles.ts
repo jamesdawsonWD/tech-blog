@@ -24,17 +24,19 @@ export interface Post {
   title: string
   description: string
   date: string
-  content: MDXRemoteSerializeResult
+  content: string
   author: Author
   coverImage?: string
   views: number
   likes: number
   comments: number
+  tags: string[]
   commentData?: Comment[]
+  components: string[]
 }
 
 export interface PostMeta
-  extends Omit<Post, "content" | "commentData"> {}
+  extends Omit<Post, "content" | "commentData"> { }
 
 export async function getAllPosts(): Promise<PostMeta[]> {
   if (!fs.existsSync(postsDirectory)) {
@@ -59,6 +61,8 @@ export async function getAllPosts(): Promise<PostMeta[]> {
       views: data.views || 0,
       likes: data.likes || 0,
       comments: data.comments || 0,
+      tags: data.tags || [],
+      components: data.components || []
     }
   })
 
@@ -71,19 +75,20 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
 
   const fileContents = fs.readFileSync(fullPath, "utf8")
   const { data, content } = matter(fileContents)
-  const mdxSource = await serialize(content)
 
   return {
     slug,
     title: data.title,
     description: data.description,
     date: data.date,
-    content: mdxSource,
+    content,
     author: data.author,
     coverImage: data.coverImage,
     views: data.views || 0,
     likes: data.likes || 0,
     comments: data.comments || 0,
+    tags: data.tags || [],
     commentData: data.commentData || [],
+    components: data.components || []
   }
 }

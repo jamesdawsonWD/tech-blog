@@ -1,0 +1,22 @@
+.linkContainer {
+  width: 243px;
+  height: 33px;
+}
+
+.announcement {
+  padding: 1px;
+  max-width: 100%;
+  background:
+    conic-gradient(
+      from calc(var(--rotation) - 80deg) at 50px 15px,
+      transparent 0,
+      #eca5a7 20%,
+      transparent 25%
+    ),
+    #452324;
+  box-shadow: 0 0 20px 0 rgba(245, 48, 107, 0.1);
+  transition: all 0.2s ease;
+  border-radius: 1000px;
+  transform: translateZ(0);
+  transform-style: preserve-3d;
+}
