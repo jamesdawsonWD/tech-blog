@@ -24,7 +24,7 @@ export default function CurrentVisitorIp() {
 
   return (
     <div className="font-mono flex flex-col gap-2 items-center  space-y-4 my-12">
-      <Button onClick={getIp} disabled={loading} variant="secondary">
+      <Button onClick={getIp} disabled={loading} variant="soft">
         {loading ? "Fetching IP..." : "See your IP address?"}
       </Button>
 

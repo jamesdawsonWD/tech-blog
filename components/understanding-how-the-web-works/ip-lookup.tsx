@@ -98,7 +98,7 @@ export default function IpLookup() {
               )}
             />
 
-            <Button type="submit" variant="secondary" className="min-w-40">
+            <Button type="submit" variant="soft" className="min-w-40">
               Get details
             </Button>
           </form>
