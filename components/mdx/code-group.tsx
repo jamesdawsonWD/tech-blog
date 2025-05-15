@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { CodeRenderer } from "./code-renderer";
 import type { BundledLanguage } from "shiki/bundle/web";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 export type CodeOption = {
   name: string; // label shown on the tab (e.g. "pnpm", "npm")

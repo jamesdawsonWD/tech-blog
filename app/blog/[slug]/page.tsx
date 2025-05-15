@@ -138,14 +138,7 @@ export default async function BlogPost({
           </div>
         </div>
         <div className="mb-8 sticky right-0 flex items-center justify-between">
-          {/* <div className="flex items-center gap-4">
-            <Suspense fallback={<span>Loading views...</span>}>
-              <ViewCount slug={params.slug} />
-            </Suspense>
-            <Suspense fallback={<span>Loading likes...</span>}>
-              <LikeCount slug={params.slug} />
-            </Suspense>
-          </div> */}
+      
         </div>
 
         <article className="prose prose-stone dark:prose-invert mx-auto max-w-3xl">

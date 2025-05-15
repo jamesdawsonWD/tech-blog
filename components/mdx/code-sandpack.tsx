@@ -2,7 +2,7 @@
 
 import { useTheme } from "next-themes";
 import { Sandpack } from "@codesandbox/sandpack-react";
-import { gruvboxDark, githubLight } from "@codesandbox/sandpack-themes";
+import { gruvboxDark } from "@codesandbox/sandpack-themes";
 
 interface CodeSandpackProps {
   files: Record<string, string>;
