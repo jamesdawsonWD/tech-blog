@@ -2,6 +2,7 @@
 title: "What Happens When You Type a URL into Your Browser?"
 description: "A friendly walkthrough of how the web works, from DNS and servers to HTTP and rendering."
 date: "2025-05-14"
+coverImage: "https://res.cloudinary.com/duhjdlmmi/image/upload/c_auto,w_700,h_500,g_auto/c_limit,w_700/v1/9u3e79_fp8i7t?_a=BAVAZGDX0"
 author:
   name: "James Dawson"
   avatar: "https://pbs.twimg.com/profile_images/1916819575359811584/l-_oX6su_400x400.jpg"
@@ -98,10 +99,48 @@ But there’s a problem: **anyone can listen in** to what we’re sending to the
 
 We call these steps **TLS** — which stands for **Transport Layer Security**. It wraps the conversation in encryption, so no one else can listen in while the browser and server talk.
 
-## Talk about HTTP and rendering
+### Sending messages to the server
+
+Once the browser and server are happily connected, the browser sends a message saying, “Hey, give me the stuff!” This message is called an **HTTP request**.
+
+Think of it like text message.
+
+<CodeBlock  lang="bash">
+{`
+  GET /cat-pics?query=fluffy HTTP/1.1
+  Host: example.com
+`}
+</CodeBlock>
+
+This HTTP request essentially says this:
+
+> Hey `example.com`, can you send me the `cat-pics` page and show me the `fluffy` cats please?
+
+When `example.com` gets your request, it checks to see if `cat-pics` exists, and if so, sends back a response — often a combination of HTML, CSS, JavaScript, and some `fluffy` cat images. It will look something like this:
+
+
+<CodeBlock  lang="html">
+{`
+  <!DOCTYPE html>
+<html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <title>Cat Pics</title>
+    </head>
+    <body>
+      <h1>Here's your cat pics!</h1>
+      <img src="https://placekitten.com/600/400" alt="Cute cat" />
+    </body>
+</html>
+`}
+</CodeBlock>
+
+
+And once we’ve got our response from the server! All that is left is for our browser to turn that code into a real, working webpage.
+
+Which we will cover in the next article...
 
 ---
 
 That’s it! You’ve just walked through how the modern web works from browser to server and back.
 
-Let me know if you want a printable PDF version of this, or if you'd like to turn it into a mini course!

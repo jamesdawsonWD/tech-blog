@@ -41,7 +41,7 @@ export default function RootLayout({
                   <MailIcon className="h-6 w-6 stroke-current text-background" />
                 </div>
                 <div className="ease translate-x-0  transition duration-300 group-hover:-translate-x-8">
-                  Newsletter
+                  Get Newsletter
                 </div>
                 <div className="ease absolute right-5 translate-x-full scale-x-50 opacity-0 blur-sm transition duration-300 group-hover:translate-x-0 group-hover:scale-x-100 group-hover:opacity-100 group-hover:blur-none">
                   <ArrowRightIcon className="h-6 w-6 stroke-current text-background" />
