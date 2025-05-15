@@ -2,13 +2,8 @@ import { notFound } from "next/navigation";
 import { evaluate } from "@mdx-js/mdx";
 import * as runtime from "react/jsx-runtime";
 import { getAllPosts, getPostBySlug } from "@/lib/articles";
-import { createServerSupabaseClient } from "@/lib/supabase";
-import ViewCount from "@/components/view-conter";
-import LikeCount from "@/components/like-count";
-import { LikeButton } from "@/components/like-button";
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
-import { Suspense } from "react";
 import { formatDate } from "@/lib/utils";
 import { CodeGroup } from "@/components/mdx/code-group"; // adjust path as needed
 import { CodeBlock } from "@/components/mdx/code-block"; // adjust path as needed
@@ -22,6 +17,7 @@ import LearningGoals from "@/components/mdx/learning-goals";
 import IpLookup from "@/components/understanding-how-the-web-works/ip-lookup";
 import UrlVisualizer from "@/components/understanding-how-the-web-works/url-visualizer";
 import CurrentVisitorIp from "@/components/understanding-how-the-web-works/current-visitor-ip";
+import CdnImage from "@/components/understanding-how-the-web-works/cdn-image";
 
 export async function generateStaticParams() {
   const posts = await getAllPosts();
@@ -64,7 +60,8 @@ export default async function BlogPost({
     LearningGoals,
     IpLookup,
     UrlVisualizer,
-    CurrentVisitorIp
+    CurrentVisitorIp,
+    CdnImage
   };
 
   type ComponentName = keyof typeof AllClientComponents;

@@ -75,7 +75,7 @@ export default function IpLookup() {
 
   return (
     <>
-      <div className="max-w-md mx-auto space-y-6">
+      <div className="max-w-md mx-auto space-y-6 my-12">
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
@@ -104,27 +104,29 @@ export default function IpLookup() {
           </form>
         </Form>
       </div>
-      <ConsoleWrapper className="px-6">
-        {form.formState.isSubmitting && (
-          <div className="font-mono text-sm text-white animate-pulse">
-            <p>Fetching IP address...</p>
-          </div>
-        )}
 
-        {ip && (
-          <div className="font-mono text-sm text-green-400 animate-fade-in-up">
-            <p>
-              IP address: <strong>{ip}</strong>
-            </p>
-          </div>
-        )}
+      {(ip || form.formState.isSubmitting) && (
+        <ConsoleWrapper className="px-6">
+          {form.formState.isSubmitting && (
+            <div className="font-mono  text-white animate-pulse">
+              <p>Fetching IP address...</p>
+            </div>
+          )}
+          {ip && (
+            <div className="font-mono  text-green-400 animate-fade-in-up">
+              <p>
+                {parsedUrl?.host} → <strong>{ip}</strong>
+              </p>
+            </div>
+          )}
 
-        {error && (
-          <div className="font-mono text-sm text-red-400 animate-fade-in-up">
-            <p>❌ Error: {error}</p>
-          </div>
-        )}
-      </ConsoleWrapper>
+          {error && (
+            <div className="font-mono  text-red-400 animate-fade-in-up">
+              <p>❌ Error: {error}</p>
+            </div>
+          )}
+        </ConsoleWrapper>
+      )}
     </>
   );
 }

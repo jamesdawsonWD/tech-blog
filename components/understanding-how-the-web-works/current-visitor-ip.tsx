@@ -23,15 +23,17 @@ export default function CurrentVisitorIp() {
   };
 
   return (
-    <div className="font-mono flex gap-2 text-sm  space-y-4">
+    <div className="font-mono flex flex-col gap-2 items-center  space-y-4 my-12">
       <Button onClick={getIp} disabled={loading} variant="secondary">
         {loading ? "Fetching IP..." : "See your IP address?"}
       </Button>
 
       {ip && (
-        <p>
-          <strong>{ip}</strong>
-        </p>
+        <ConsoleWrapper className="px-6">
+          <p className="text-white">
+            <strong>{ip}</strong>
+          </p>
+        </ConsoleWrapper>
       )}
     </div>
   );
