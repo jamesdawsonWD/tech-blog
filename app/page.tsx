@@ -85,13 +85,13 @@ export default async function Home() {
                 </LinkButton>
                 <LinkButton href="/signup">
                   <div className="ease absolute left-5 translate-x-0 opacity-100 transition duration-300 group-hover:-translate-x-full group-hover:scale-x-50 group-hover:opacity-0 group-hover:blur-sm">
-                    <MailIcon className="h-6 w-6 stroke-current text-background" />
+                    <MailIcon className="h-6 w-6 stroke-current" />
                   </div>
                   <div className="ease translate-x-0 transition duration-300 group-hover:-translate-x-8">
                     Read with Monday Coffee
                   </div>
                   <div className="ease absolute right-5 translate-x-full scale-x-50 opacity-0 blur-sm transition duration-300 group-hover:translate-x-0 group-hover:scale-x-100 group-hover:opacity-100 group-hover:blur-none">
-                    <ArrowRightIcon className="h-6 w-6 stroke-current text-background" />
+                    <ArrowRightIcon className="h-6 w-6 stroke-current" />
                   </div>
                 </LinkButton>
               </div>

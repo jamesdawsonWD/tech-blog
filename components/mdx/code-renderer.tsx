@@ -13,9 +13,16 @@ type CodeRendererProps = {
   code: string;
   lang: BundledLanguage;
   animateEntry?: boolean;
+  showCopyButton: boolean;
+  reverse?: boolean;
 };
 
-export function CodeRenderer({ code, lang }: CodeRendererProps) {
+export function CodeRenderer({
+  code,
+  lang,
+  showCopyButton = true,
+  reverse = false,
+}: CodeRendererProps) {
   const [nodes, setNodes] = useState<JSX.Element | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -25,6 +32,17 @@ export function CodeRenderer({ code, lang }: CodeRendererProps) {
         lang,
         theme: "dark-plus",
       });
+
+      if (
+        
+        hast.children === "pre" &&
+        hast.properties
+      ) {
+        hast.properties.className = [
+          ...(hast.properties.className || []),
+          "h-full",
+        ];
+      }
 
       const jsxElement = toJsxRuntime(hast, {
         Fragment,
@@ -43,7 +61,7 @@ export function CodeRenderer({ code, lang }: CodeRendererProps) {
   };
 
   return (
-    <div className="overflow-auto text-sm relative [&_pre]:mt-0 [&_pre]:mb-0">
+    <div className="overflow-auto text-sm relative [&_pre]:mt-0 [&_pre]:mb-0 min-h-max h-full">
       {nodes ?? (
         <div
           className="flex justify-center items-center p-4"
@@ -64,7 +82,7 @@ export function CodeRenderer({ code, lang }: CodeRendererProps) {
       </div>
 
       <AnimatePresence>
-        {nodes && (
+        {nodes && showCopyButton && (
           <motion.button
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

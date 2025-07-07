@@ -12,7 +12,7 @@
     --popover-foreground: 20 14.3% 4.1%;
     --primary: 24 9.8% 10%;
     --primary-foreground: 60 9.1% 97.8%;
-    --secondary: 60 4.8% 95.9%;
+    --secondary: 78, 28%, 93%;
     --secondary-foreground: 24 9.8% 10%;
     --muted: 60 4.8% 95.9%;
     --muted-foreground: 25 5.3% 44.7%;
@@ -137,24 +137,34 @@
 }
 
 .code-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: #78716c #44403c; /* thumb color and track color */
+  scrollbar-color: #78716c transparent; /* Firefox: thumb + transparent track */
 }
 
-.code-scrollbar::-webkit-scrollbar {
-  width: 8px;
-}
 
 .code-scrollbar::-webkit-scrollbar-track {
-  background: #44403c; /* track */
+  background: transparent; /* effectively hides it */
 }
 
 .code-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #525252; /* thumb */
-  border-radius: 4px;
-  border: 2px solid #44403c;
+  background-color: #a4a4a4;
+  border-radius: 6px;
+  border: none; /* remove fake padding if not needed */
 }
 
+/* Hide scrollbar arrows (most reliable cross-browser combo) */
+.code-scrollbar::-webkit-scrollbar-button {
+  display: none;
+  height: 0;
+  width: 0;
+  background: transparent;
+}
+
+.code-scrollbar::-webkit-scrollbar-button:single-button {
+  display: block;
+  height: 0;
+  width: 0;
+  background: transparent;
+}
 @property --rotation {
   syntax: "<angle>";
   initial-value: 0deg;

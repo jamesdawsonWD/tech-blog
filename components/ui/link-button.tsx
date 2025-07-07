@@ -12,7 +12,7 @@ const linkButtonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-stone-800 text-background shadow-xl shadow-slate-950/20 after:absolute after:inset-0 after:hidden after:rounded-2xl after:shadow-2xl after:shadow-slate-950/25 after:content-[''] sm:shadow-slate-950/25 sm:after:block pl-[3.25rem]",
+          "bg-zinc-800 text-background shadow-xl shadow-slate-950/20 after:absolute after:inset-0 after:hidden after:rounded-2xl after:shadow-2xl after:shadow-slate-950/25 after:content-[''] sm:shadow-slate-950/25 sm:after:block pl-[3.25rem]",
         soft: "bg-[#eff2e8] !text-foreground pl-6",
       },
     },

@@ -18,6 +18,8 @@ import IpLookup from "@/components/understanding-how-the-web-works/ip-lookup";
 import UrlVisualizer from "@/components/understanding-how-the-web-works/url-visualizer";
 import CurrentVisitorIp from "@/components/understanding-how-the-web-works/current-visitor-ip";
 import CdnImage from "@/components/understanding-how-the-web-works/cdn-image";
+import IncludesDemo from "@/components/array-cheatsheet/includes";
+import PushDemo from "@/components/array-cheatsheet/push";
 
 export async function generateStaticParams() {
   const posts = await getAllPosts();
@@ -61,7 +63,9 @@ export default async function BlogPost({
     IpLookup,
     UrlVisualizer,
     CurrentVisitorIp,
-    CdnImage
+    CdnImage,
+    IncludesDemo,
+    PushDemo
   };
 
   type ComponentName = keyof typeof AllClientComponents;
