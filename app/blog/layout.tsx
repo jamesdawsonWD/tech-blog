@@ -20,7 +20,6 @@ export default function RootLayout({
   return (
     <>
       <div className="mt-12">{children}</div>
-      <Footer />
     </>
   );
 }

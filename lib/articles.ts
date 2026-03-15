@@ -1,22 +1,12 @@
-// lib/articles.ts
 import fs from "fs"
 import path from "path"
 import matter from "gray-matter"
-import { serialize } from "next-mdx-remote/serialize"
-import { MDXRemoteSerializeResult } from "next-mdx-remote"
 
 const postsDirectory = path.join(process.cwd(), "articles")
 
 export interface Author {
   name: string
   avatar: string
-}
-
-export interface Comment {
-  id: string
-  author: Author
-  content: string
-  createdAt: string
 }
 
 export interface Post {
@@ -27,16 +17,11 @@ export interface Post {
   content: string
   author: Author
   coverImage?: string
-  views: number
-  likes: number
-  comments: number
   tags: string[]
-  commentData?: Comment[]
   components: string[]
 }
 
-export interface PostMeta
-  extends Omit<Post, "content" | "commentData"> { }
+export type PostMeta = Omit<Post, "content">
 
 export async function getAllPosts(): Promise<PostMeta[]> {
   if (!fs.existsSync(postsDirectory)) {
@@ -58,9 +43,6 @@ export async function getAllPosts(): Promise<PostMeta[]> {
       date: data.date,
       author: data.author,
       coverImage: data.coverImage,
-      views: data.views || 0,
-      likes: data.likes || 0,
-      comments: data.comments || 0,
       tags: data.tags || [],
       components: data.components || []
     }
@@ -84,11 +66,7 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
     content,
     author: data.author,
     coverImage: data.coverImage,
-    views: data.views || 0,
-    likes: data.likes || 0,
-    comments: data.comments || 0,
     tags: data.tags || [],
-    commentData: data.commentData || [],
     components: data.components || []
   }
 }

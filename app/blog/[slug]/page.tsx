@@ -2,12 +2,11 @@ import { notFound } from "next/navigation";
 import { evaluate } from "@mdx-js/mdx";
 import * as runtime from "react/jsx-runtime";
 import { getAllPosts, getPostBySlug } from "@/lib/articles";
-import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import { formatDate } from "@/lib/utils";
-import { CodeGroup } from "@/components/mdx/code-group"; // adjust path as needed
-import { CodeBlock } from "@/components/mdx/code-block"; // adjust path as needed
-import { CodeSandpack } from "@/components/mdx/code-sandpack"; // adjust path as needed
+import { CodeGroup } from "@/components/mdx/code-group";
+import { CodeBlock } from "@/components/mdx/code-block";
+import { CodeSandpack } from "@/components/mdx/code-sandpack";
 import { ConicGradient } from "@/components/raycast/conic-gradient/conic-gradient";
 import { ConicStatic } from "@/components/raycast/conic-static/conic-static";
 import { RaycastButton } from "@/components/raycast/button/raycast-button";
@@ -20,6 +19,7 @@ import CurrentVisitorIp from "@/components/understanding-how-the-web-works/curre
 import CdnImage from "@/components/understanding-how-the-web-works/cdn-image";
 import IncludesDemo from "@/components/array-cheatsheet/includes";
 import PushDemo from "@/components/array-cheatsheet/push";
+import rehypeSectionize from "@/lib/rehype-sectionize";
 
 export async function generateStaticParams() {
   const posts = await getAllPosts();
@@ -29,9 +29,10 @@ export async function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  const post = await getPostBySlug(params.slug);
+  const { slug } = await params;
+  const post = await getPostBySlug(slug);
 
   if (!post) {
     return {};
@@ -47,9 +48,10 @@ export async function generateMetadata({
 export default async function BlogPost({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  const post = await getPostBySlug(params.slug);
+  const { slug } = await params;
+  const post = await getPostBySlug(slug);
   if (!post) notFound();
 
   const AllClientComponents = {
@@ -76,49 +78,26 @@ export default async function BlogPost({
     usedComponentNames.map((name) => [name, AllClientComponents[name]])
   );
 
-  // const supabase = createServerSupabaseClient();
-  // const [{ data: viewsData }, { count: likes }] = await Promise.all([
-  //   supabase.from("posts").select("views").eq("slug", params.slug).single(),
-  //   supabase.from("likes").select("id", { count: "exact", head: true }).eq("post_slug", params.slug),
-  // ]);
+  const contentWithTitle = `# ${post.title}\n\n${post.content}`;
 
-  // post.views = viewsData?.views || 0;
-  // post.likes = likes || 0;
-
-  // Evaluate MDX string to a component
-  const { default: MDXContent, ...exports } = await evaluate(post.content, {
+  const { default: MDXContent } = await evaluate(contentWithTitle, {
     ...runtime,
     baseUrl: import.meta.url,
+    rehypePlugins: [rehypeSectionize],
   });
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="container max-w-3xl py-6 lg:py-12">
-        <div className="flex w-full justify-between items-center">
-          <Link href="/" className="text-sm flex gap-1 items-center">
+      <main className="container max-w-5xl py-6 lg:py-12">
+        <div className="mb-8">
+          <Link href="/" className="text-sm flex gap-1 items-center text-muted-foreground hover:text-foreground transition-colors">
             <ChevronLeft className="size-4" />
             Back
           </Link>
-          <Badge variant="secondary">
-            <div className="flex items-center gap-1.5">
-              <Image
-                src={post.author.avatar || "/placeholder.svg"}
-                alt={post.author.name}
-                width={24}
-                height={24}
-                className="rounded-full"
-              />
-              <span>{post.author.name}</span>
-            </div>
-          </Badge>
         </div>
 
-        <h1 className="text-3xl font-bold mt-2 mb-8 tracking-tight text-center md:text-left sm:text-3xl">
-          {post.title}
-        </h1>
-
         {post.coverImage && (
-          <div className="relative w-full h-[300px] md:h-[500px] lg:h-[700px] mb-4 rounded-xl overflow-hidden">
+          <div className="relative w-full h-[300px] md:h-[450px] lg:h-[560px] mb-12 rounded-xl overflow-hidden">
             <Image
               src={post.coverImage}
               alt="Cover Image"
@@ -129,24 +108,28 @@ export default async function BlogPost({
           </div>
         )}
 
-        <div className="flex mb-8 flex-wrap justify-between w-full  gap-y-2 gap-x-4 text-sm text-slate-800">
-          <Badge variant="secondary">
-            <time dateTime={post.date}>{formatDate(post.date)}</time>
-          </Badge>
-          <div className="space-x-2">
-            {post.tags.map((tag) => (
-              <Badge key={tag} variant="secondary" className="capitalize">
-                {tag}
-              </Badge>
-            ))}
-          </div>
-        </div>
-        <div className="mb-8 sticky right-0 flex items-center justify-between">
-      
-        </div>
-
-        <article className="prose prose-stone dark:prose-invert mx-auto max-w-3xl">
-          <MDXContent components={ClientComponents} />
+        <article>
+          <MDXContent
+            components={{
+              ...ClientComponents,
+              h1: ({ children }: { children: React.ReactNode }) => (
+                <div>
+                  <h1>{children}</h1>
+                  <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                    <time dateTime={post.date}>{formatDate(post.date)}</time>
+                    {post.tags.length > 0 && (
+                      <>
+                        <span className="text-border">·</span>
+                        {post.tags.map((tag) => (
+                          <span key={tag} className="capitalize">{tag}</span>
+                        ))}
+                      </>
+                    )}
+                  </div>
+                </div>
+              ),
+            }}
+          />
         </article>
       </main>
     </div>
