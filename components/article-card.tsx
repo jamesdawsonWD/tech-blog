@@ -3,7 +3,7 @@ import Link from "next/link";
 export default function ArticleCard({ post }: { post: any }) {
   return (
     <Link
-      href={`/blog/${post.slug}`}
+      href={`/articles/${post.slug}`}
       className="group block"
     >
       <h3 className="text-base font-bold text-foreground group-hover:text-muted-foreground transition-colors">

@@ -9,10 +9,9 @@ const inter = Inter({ subsets: ["latin"] });
 const inriaSerif = Inria_Serif({ subsets: ["latin"], weight: ["300", "400", "700"], style: ["normal", "italic"], variable: "--font-inria-serif" });
 
 export const metadata: Metadata = {
-  title: "DevBlog - Programming Insights",
+  title: "Hi, I'm James",
   description:
-    "A responsive blog with syntax highlighting and engagement features",
-  generator: "v0.dev",
+    "A website with all of my bit and bobs.",
 };
 
 export default function RootLayout({
