@@ -20,6 +20,7 @@ import CdnImage from "@/components/understanding-how-the-web-works/cdn-image";
 import IncludesDemo from "@/components/array-cheatsheet/includes";
 import PushDemo from "@/components/array-cheatsheet/push";
 import rehypeSectionize from "@/lib/rehype-sectionize";
+import CoverImageWithSkeleton from "@/components/blog/cover-image-with-skeleton";
 
 export async function generateStaticParams() {
   const posts = await getAllPosts();
@@ -67,7 +68,7 @@ export default async function BlogPost({
     CurrentVisitorIp,
     CdnImage,
     IncludesDemo,
-    PushDemo
+    PushDemo,
   };
 
   type ComponentName = keyof typeof AllClientComponents;
@@ -90,22 +91,17 @@ export default async function BlogPost({
     <div className="min-h-screen bg-background">
       <main className="container max-w-5xl py-6 lg:py-12">
         <div className="mb-8">
-          <Link href="/" className="text-sm flex gap-1 items-center text-muted-foreground hover:text-foreground transition-colors">
+          <Link
+            href="/"
+            className="text-sm flex gap-1 items-center text-muted-foreground hover:text-foreground transition-colors"
+          >
             <ChevronLeft className="size-4" />
             Back
           </Link>
         </div>
 
         {post.coverImage && (
-          <div className="relative w-full h-[300px] md:h-[450px] lg:h-[560px] mb-12 rounded-xl overflow-hidden">
-            <Image
-              src={post.coverImage}
-              alt="Cover Image"
-              fill
-              className="object-cover"
-              priority
-            />
-          </div>
+          <CoverImageWithSkeleton src={post.coverImage} alt="Cover Image" />
         )}
 
         <article>
@@ -121,7 +117,9 @@ export default async function BlogPost({
                       <>
                         <span className="text-border">·</span>
                         {post.tags.map((tag) => (
-                          <span key={tag} className="capitalize">{tag}</span>
+                          <span key={tag} className="capitalize">
+                            {tag}
+                          </span>
                         ))}
                       </>
                     )}
