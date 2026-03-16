@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, type ReactNode } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaXTwitter, FaGithub } from "react-icons/fa6";
+import { FaXTwitter, FaGithub, FaLinkedin } from "react-icons/fa6";
 import ArticleCard from "@/components/article-card";
 import PhotoGallery from "@/components/photo-gallery";
 import CVSection from "@/components/cv-section";
@@ -453,6 +453,15 @@ export default function HomeContent({ posts }: { posts: any[] }) {
             className="text-foreground hover:text-muted-foreground transition-colors"
           >
             <FaGithub size={18} />
+          </a>
+          <a
+            href="https://www.linkedin.com/in/james-dawson-245707174/"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="View James's Linkedin profile"
+            className="text-foreground hover:text-muted-foreground transition-colors"
+          >
+            <FaLinkedin size={18} />
           </a>
         </div>
       </div>
