@@ -2,8 +2,9 @@
 
 import { useState, useRef, useEffect, type ReactNode } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { FaXTwitter, FaGithub, FaLinkedin } from "react-icons/fa6";
+import { Download } from "lucide-react";
 import ArticleCard from "@/components/article-card";
 import PhotoGallery from "@/components/photo-gallery";
 import CVSection from "@/components/cv-section";
@@ -12,6 +13,7 @@ const BADGES = [
   { label: "Dog Dad", key: "dog-dad" },
   { label: "Human Father", key: "human-father" },
   { label: "Husband", key: "husband" },
+  { label: "Tinkerer", key: "tinkerer" },
   { label: "designing and building", key: "designing-building" },
 ] as const;
 
@@ -25,10 +27,6 @@ type BadgeKey =
 
 type PreviewSide = "left" | "right";
 
-/*
-  Images to preload AFTER the page has mounted.
-  Only include the first image of each gallery so hover is instant.
-*/
 const PHOTO_PRELOADS = [
   "/images/human-father/1.jpg",
   "/images/dog-dad/1.jpg",
@@ -37,20 +35,11 @@ const PHOTO_PRELOADS = [
 
 function PhotoPreloader() {
   useEffect(() => {
-    const preload = () => {
-      PHOTO_PRELOADS.forEach((src) => {
-        const img = new Image();
-        img.src = src;
-      });
-    };
-
-    if ("requestIdleCallback" in window) {
-      const id = window.requestIdleCallback(preload);
-      return () => window.cancelIdleCallback(id);
-    }
-
-    const timeout = setTimeout(preload, 400);
-    return () => clearTimeout(timeout);
+    PHOTO_PRELOADS.forEach((src) => {
+      const img = new window.Image();
+      img.src = src;
+      img.decode?.().catch(() => {});
+    });
   }, []);
 
   return null;
@@ -97,7 +86,7 @@ function WavyText({ text }: { text: string }) {
           transition={
             isHovered
               ? { duration: 0.3, delay: i * 0.03, ease: "easeInOut" }
-              : { duration: 0.1 }
+              : { duration: 0.1, delay: 0, ease: "easeOut" }
           }
           className={char === " " ? "inline-block w-[0.25em]" : "inline-block"}
         >
@@ -120,43 +109,54 @@ function DesktopHoverPhotoCard({
   const isLeft = side === "left";
 
   return (
-    <AnimatePresence>
-      {show ? (
+    <motion.div
+      initial={false}
+      animate={{
+        opacity: show ? 1 : 0,
+        x: show ? 0 : isLeft ? 18 : -18,
+        y: show ? 0 : 8,
+        rotate: show ? (isLeft ? -3 : 3) : isLeft ? -5 : 5,
+        scale: show ? 1 : 0.96,
+      }}
+      transition={{ duration: 0.18, ease: "easeOut" }}
+      style={{ pointerEvents: show ? "auto" : "none" }}
+      aria-hidden={!show}
+      className={[
+        "absolute top-1/2 z-50 hidden md:block",
+        isLeft
+          ? "right-full mr-4 -translate-y-1/2"
+          : "left-full ml-4 -translate-y-1/2",
+      ].join(" ")}
+    >
+      <div className="w-[220px] overflow-hidden rounded-2xl border border-black/10 bg-white shadow-[0_18px_60px_rgba(0,0,0,0.18)]">
+        {children}
+      </div>
+    </motion.div>
+  );
+}
+
+function MobileInlinePhotoCard({
+  show,
+  children,
+}: {
+  show: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <AnimatePresence initial={false}>
+      {show && (
         <motion.div
-          initial={{
-            opacity: 0,
-            x: isLeft ? 18 : -18,
-            y: 8,
-            rotate: isLeft ? -5 : 5,
-            scale: 0.96,
-          }}
-          animate={{
-            opacity: 1,
-            x: 0,
-            y: 0,
-            rotate: isLeft ? -3 : 3,
-            scale: 1,
-          }}
-          exit={{
-            opacity: 0,
-            x: isLeft ? 12 : -12,
-            y: 6,
-            rotate: isLeft ? -4 : 4,
-            scale: 0.98,
-          }}
-          transition={{ duration: 0.22, ease: "easeOut" }}
-          className={[
-            "pointer-events-none absolute top-1/2 z-50 hidden md:block",
-            isLeft
-              ? "right-full mr-4 -translate-y-1/2"
-              : "left-full ml-4 -translate-y-1/2",
-          ].join(" ")}
+          initial={{ opacity: 0, y: 8, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 6, scale: 0.98 }}
+          transition={{ duration: 0.18, ease: "easeOut" }}
+          className="absolute left-0 top-full z-40 mt-3 block md:hidden"
         >
-          <div className="w-[220px] overflow-hidden rounded-2xl border border-black/10 bg-white shadow-[0_18px_60px_rgba(0,0,0,0.18)]">
+          <div className="w-[170px] overflow-hidden rounded-2xl border border-black/10 bg-white shadow-[0_14px_40px_rgba(0,0,0,0.14)]">
             {children}
           </div>
         </motion.div>
-      ) : null}
+      )}
     </AnimatePresence>
   );
 }
@@ -211,10 +211,12 @@ function Badge({
         onClick={onClick}
         animate={{
           backgroundColor:
-            isHovered || isFocused || isLocked ? "#000000" : "hsl(80,12%,85%)",
+            isHovered || isFocused || isLocked
+              ? "#000000"
+              : "hsl(80, 12.30%, 85.70%)",
         }}
-        transition={{ duration: 0.2 }}
-        className={`font-medium cursor-pointer !p-1 rounded text-foreground hover:!text-background border-0 inline-flex leading-none ${
+        transition={{ duration: 0.2, ease: "easeInOut" }}
+        className={`cursor-pointer rounded border-0 !p-1 font-medium leading-none text-foreground hover:!text-background ${
           shouldBlur ? "select-none" : ""
         } ${isLocked || isFocused ? "!text-background" : ""}`}
       >
@@ -222,28 +224,164 @@ function Badge({
       </motion.button>
 
       {preview ? (
-        <DesktopHoverPhotoCard show={showPreview} side={previewSide}>
-          {preview}
-        </DesktopHoverPhotoCard>
+        <>
+          <DesktopHoverPhotoCard show={showPreview} side={previewSide}>
+            {preview}
+          </DesktopHoverPhotoCard>
+
+          <MobileInlinePhotoCard show={showPreview}>
+            {preview}
+          </MobileInlinePhotoCard>
+        </>
       ) : null}
     </span>
+  );
+}
+
+function ContentNav({
+  activeView,
+  rightSectionView,
+  router,
+  floating = false,
+}: {
+  activeView: BadgeKey;
+  rightSectionView: BadgeKey;
+  router: ReturnType<typeof useRouter>;
+  floating?: boolean;
+}) {
+  return (
+    <motion.div
+      layout
+      className={
+        floating
+          ? "pointer-events-auto flex items-center gap-3"
+          : "flex items-center gap-3"
+      }
+      transition={{
+        layout: {
+          type: "spring",
+          stiffness: 380,
+          damping: 32,
+          mass: 0.85,
+        },
+      }}
+    >
+      <motion.nav
+        layout
+        role="tablist"
+        aria-label="Content navigation"
+        className="inline-flex items-center rounded-full bg-[#F0F4EF]/80 p-1 shadow-[0_8px_30px_rgba(0,0,0,0.08)] backdrop-blur-sm"
+        transition={{
+          layout: {
+            type: "spring",
+            stiffness: 380,
+            damping: 32,
+            mass: 0.85,
+          },
+        }}
+      >
+        {[
+          { label: "Blog", key: "blog" },
+          { label: "Experience", key: "experience" },
+        ].map((item) => {
+          const active =
+            item.key === "blog"
+              ? activeView !== "last-10-years"
+              : activeView === "last-10-years";
+
+          return (
+            <motion.button
+              layout
+              key={item.key}
+              role="tab"
+              type="button"
+              aria-selected={active}
+              aria-controls={
+                item.key === "blog" ? "blog-content" : "experience-content"
+              }
+              id={`${item.key}-tab`}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => {
+                if (item.key === "blog") {
+                  router.push("/", { scroll: false });
+                } else {
+                  router.push("/?view=last-10-years", { scroll: false });
+                }
+              }}
+              className={`relative cursor-pointer rounded-full px-5 py-2.5 text-sm transition-colors ${
+                active ? "text-background" : "text-muted-foreground"
+              }`}
+              transition={{
+                layout: {
+                  type: "spring",
+                  stiffness: 380,
+                  damping: 32,
+                  mass: 0.85,
+                },
+              }}
+            >
+              {active && (
+                <motion.span
+                  layoutId={
+                    floating ? "mode-pill-floating" : "mode-pill-inline"
+                  }
+                  className="absolute inset-0 rounded-full bg-foreground shadow-[0_8px_24px_rgba(20,20,20,0.08)]"
+                  transition={{
+                    type: "spring",
+                    stiffness: 420,
+                    damping: 34,
+                    mass: 0.8,
+                  }}
+                />
+              )}
+              <span className="relative z-10">{item.label}</span>
+            </motion.button>
+          );
+        })}
+      </motion.nav>
+
+      <AnimatePresence mode="popLayout" initial={false}>
+        {rightSectionView === "last-10-years" && (
+          <motion.a
+            layout
+            key={floating ? "download-cv-floating" : "download-cv-inline"}
+            initial={{ opacity: 0, x: -8, scale: 0.96 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: -8, scale: 0.96 }}
+            transition={{
+              layout: {
+                type: "spring",
+                stiffness: 380,
+                damping: 32,
+                mass: 0.85,
+              },
+              opacity: { duration: 0.16 },
+              x: { duration: 0.2, ease: "easeOut" },
+              scale: { duration: 0.16 },
+            }}
+            href="/cv.pdf"
+            download="james-dawson-cv.pdf"
+            className="inline-flex items-center gap-2 rounded-full border border-border bg-background/80 px-4 py-2.5 text-sm text-muted-foreground shadow-[0_8px_30px_rgba(0,0,0,0.08)] backdrop-blur-md transition-colors hover:text-foreground"
+          >
+            <Download size={16} />
+            Download CV
+          </motion.a>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }
 
 export default function HomeContent({ posts }: { posts: any[] }) {
   const [hoveredBioBadge, setHoveredBioBadge] = useState<BadgeKey>(null);
   const [activeBioBadge, setActiveBioBadge] = useState<BadgeKey>(null);
-  const [hoveredNavView, setHoveredNavView] = useState<BadgeKey>(null);
-
   const bioRef = useRef<HTMLDivElement | null>(null);
-
   const router = useRouter();
   const searchParams = useSearchParams();
-
   const activeView = (searchParams.get("view") as BadgeKey) || null;
 
   const visibleBioBadge = hoveredBioBadge ?? activeBioBadge;
-  const rightSectionView = activeView ?? hoveredNavView;
+  const rightSectionView = activeView ?? "write";
 
   useEffect(() => {
     function handlePointerDown(event: PointerEvent) {
@@ -260,32 +398,27 @@ export default function HomeContent({ posts }: { posts: any[] }) {
     return () => document.removeEventListener("pointerdown", handlePointerDown);
   }, []);
 
-  const handleBadgeClick = (key: BadgeKey) => {
-    const newView = activeView === key ? null : key;
-    router.push(newView ? `/?view=${newView}` : "/", { scroll: false });
-  };
-
   return (
     <>
       <PhotoPreloader />
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-12 md:gap-0 h-full px-8 xl:pl-24 pb-24 xl:pb-0">
-        <div className="flex flex-col justify-between py-16 lg:py-24 md:pr-24 md:border-r border-[#F0F4EF]">
+      <div className="grid h-full grid-cols-1 gap-12 px-8 pb-24 xl:grid-cols-2 xl:gap-0 xl:pl-24 xl:pb-0">
+        <div className="flex flex-col justify-between border-[#F0F4EF] py-16 md:border-r md:pr-24 lg:py-24">
           <div>
-            <p className="text-muted-foreground text-base font-extralight tracking-[0.53em] ml-1">
+            <p className="ml-1 text-base font-extralight leading-[1.184] tracking-[0.53em] text-muted-foreground">
               Design Engineer
             </p>
 
             <div className="relative mt-[12px]">
-              <div className="absolute top-1/2 right-full mr-4 w-[50vw] h-px bg-[#F0F4EF]" />
-              <h1 className="font-inria-serif xl:text-[64px] text-[48px] font-bold italic">
+              <div className="absolute top-1/2 right-full mr-4 h-px w-[50vw] bg-[#F0F4EF]" />
+              <h1 className="font-inria-serif text-[48px] font-bold italic leading-[1.184] tracking-[-0.0125em] xl:text-[64px]">
                 Hi, I&rsquo;m James.
               </h1>
             </div>
 
             <div
               ref={bioRef}
-              className="mt-4 text-[#141414] text-base leading-[2] max-w-[420px]"
+              className="mt-4 max-w-[420px] text-base font-normal leading-[2] tracking-[-0.0125em] text-[#141414]"
             >
               <BlurrableSpan hoveredBadge={visibleBioBadge} badgeKey={null}>
                 A very recent{" "}
@@ -295,12 +428,16 @@ export default function HomeContent({ posts }: { posts: any[] }) {
                 label="Human Dad"
                 badgeKey="human-father"
                 hoveredBadge={visibleBioBadge}
+                isLocked={activeBioBadge === "human-father"}
+                previewSide="right"
                 preview={<PhotoGallery galleryKey="human-father" />}
                 onHover={() => setHoveredBioBadge("human-father")}
                 onLeave={() => setHoveredBioBadge(null)}
+                onFocus={() => setHoveredBioBadge("human-father")}
+                onBlur={() => setHoveredBioBadge(null)}
                 onClick={() =>
-                  setActiveBioBadge((c) =>
-                    c === "human-father" ? null : "human-father"
+                  setActiveBioBadge((current) =>
+                    current === "human-father" ? null : "human-father"
                   )
                 }
               />
@@ -313,12 +450,17 @@ export default function HomeContent({ posts }: { posts: any[] }) {
                 label="Dog Dad"
                 badgeKey="dog-dad"
                 hoveredBadge={visibleBioBadge}
+                isLocked={activeBioBadge === "dog-dad"}
                 previewSide="left"
                 preview={<PhotoGallery galleryKey="dog-dad" />}
                 onHover={() => setHoveredBioBadge("dog-dad")}
                 onLeave={() => setHoveredBioBadge(null)}
+                onFocus={() => setHoveredBioBadge("dog-dad")}
+                onBlur={() => setHoveredBioBadge(null)}
                 onClick={() =>
-                  setActiveBioBadge((c) => (c === "dog-dad" ? null : "dog-dad"))
+                  setActiveBioBadge((current) =>
+                    current === "dog-dad" ? null : "dog-dad"
+                  )
                 }
               />
 
@@ -330,75 +472,116 @@ export default function HomeContent({ posts }: { posts: any[] }) {
                 label="Husband-to-be"
                 badgeKey="husband"
                 hoveredBadge={visibleBioBadge}
+                isLocked={activeBioBadge === "husband"}
+                previewSide="right"
                 preview={<PhotoGallery galleryKey="husband" />}
                 onHover={() => setHoveredBioBadge("husband")}
                 onLeave={() => setHoveredBioBadge(null)}
+                onFocus={() => setHoveredBioBadge("husband")}
+                onBlur={() => setHoveredBioBadge(null)}
                 onClick={() =>
-                  setActiveBioBadge((c) => (c === "husband" ? null : "husband"))
+                  setActiveBioBadge((current) =>
+                    current === "husband" ? null : "husband"
+                  )
                 }
               />
 
               <BlurrableSpan hoveredBadge={visibleBioBadge} badgeKey={null}>
-                . For the last 10 years I have been designing and building web
+                . For the last 10 years I have been Designing and Building web
                 based software. I like to write about it all.
               </BlurrableSpan>
             </div>
-
-            <nav className="flex gap-2 mt-16">
-              <button
-                onClick={() => setHoveredNavView("write")}
-                className="px-4 py-2 text-sm font-medium rounded-md"
-              >
-                Blog
-              </button>
-
-              <button
-                onClick={() => handleBadgeClick("last-10-years")}
-                className="px-4 py-2 text-sm font-medium rounded-md"
-              >
-                Experience
-              </button>
-            </nav>
           </div>
 
-          <div className="flex items-center gap-4 mt-12">
-            <a
-              href="https://x.com/jamesdawson_x"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <FaXTwitter size={18} />
-            </a>
-            <a
-              href="https://github.com/jamesdawsonWD"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <FaGithub size={18} />
-            </a>
-            <a
-              href="https://www.linkedin.com/in/james-dawson-245707174/"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <FaLinkedin size={18} />
-            </a>
+          <div className="mt-12">
+            <div className="flex items-center gap-4">
+              <a
+                href="https://x.com/jamesdawson_x"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Follow James on X (formerly Twitter)"
+                className="text-foreground transition-colors hover:text-muted-foreground"
+              >
+                <FaXTwitter size={18} />
+              </a>
+              <a
+                href="https://github.com/jamesdawsonWD"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="View James's GitHub profile"
+                className="text-foreground transition-colors hover:text-muted-foreground"
+              >
+                <FaGithub size={18} />
+              </a>
+              <a
+                href="https://www.linkedin.com/in/james-dawson-245707174/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="View James's Linkedin profile"
+                className="text-foreground transition-colors hover:text-muted-foreground"
+              >
+                <FaLinkedin size={18} />
+              </a>
+            </div>
+
+            <div className="mt-16 xl:hidden">
+              <ContentNav
+                activeView={activeView}
+                rightSectionView={rightSectionView}
+                router={router}
+              />
+            </div>
           </div>
         </div>
 
-        <div className="relative p-0 xl:p-24">
-          <AnimatePresence mode="wait">
+        <div
+          className="relative flex h-full min-h-0 flex-col p-0 xl:p-24"
+          role="region"
+          aria-label="Content area"
+        >
+          <div className="min-h-0 flex-1">
             {rightSectionView === "last-10-years" ? (
-              <CVSection key="cv" />
+              <div
+                id="experience-content"
+                className="h-full overflow-y-auto pr-2 pb-28"
+              >
+                <CVSection key="cv" />
+              </div>
             ) : (
-              <div key="blog" className="h-full overflow-y-auto max-w-lg">
-                <div className="space-y-10">
+              <div
+                key="blog-content"
+                id="blog-content"
+                className="h-full overflow-y-auto pr-2 pb-28"
+              >
+                <div className="max-w-lg space-y-10 xl:max-w-none">
                   {posts.map((post) => (
                     <ArticleCard key={post.slug} post={post} />
                   ))}
                 </div>
               </div>
             )}
+          </div>
+
+          <AnimatePresence mode="popLayout" initial={false}>
+            <motion.div
+              layout
+              className="pointer-events-none absolute inset-x-0 bottom-6 z-50 hidden justify-center xl:flex"
+              transition={{
+                layout: {
+                  type: "spring",
+                  stiffness: 380,
+                  damping: 32,
+                  mass: 0.85,
+                },
+              }}
+            >
+              <ContentNav
+                activeView={activeView}
+                rightSectionView={rightSectionView}
+                router={router}
+                floating
+              />
+            </motion.div>
           </AnimatePresence>
         </div>
       </div>
