@@ -26,7 +26,4 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# generated cv pdf (run pnpm generate:cv-pdf to create)
-/public/cv.pdf
-
 .pnpm-store
