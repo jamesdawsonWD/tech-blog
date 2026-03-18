@@ -79,7 +79,7 @@ export default async function BlogPost({
     usedComponentNames.map((name) => [name, AllClientComponents[name]])
   );
 
-  const contentWithTitle = `# ${post.title}\n\n${post.content}`;
+  const contentWithTitle = `#\n\n${post.content}`;
 
   const { default: MDXContent } = await evaluate(contentWithTitle, {
     ...runtime,
@@ -90,42 +90,84 @@ export default async function BlogPost({
   return (
     <div className="min-h-screen bg-background">
       <main className="container max-w-5xl py-6 lg:py-12">
-        <div className="mb-8">
+        <div className="mb-8 flex justify-between items-center">
           <Link
             href="/"
-            className="text-sm flex gap-1 items-center text-muted-foreground hover:text-foreground transition-colors"
+            className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             <ChevronLeft className="size-4" />
             Back
           </Link>
+          <div className="flex items-center gap-3">
+                {post.author?.avatar && (
+                  <div className="relative h-11 w-11 overflow-hidden rounded-full border border-border">
+                    <Image
+                      src={post.author.avatar}
+                      alt={post.author?.name || "Author avatar"}
+                      fill
+                      className="object-cover"
+                      sizes="44px"
+                    />
+                  </div>
+                )}
+
+                <div className="flex flex-col">
+                  {post.author?.name && (
+                    <span className="text-sm font-medium text-foreground">
+                      {post.author.name}
+                    </span>
+                  )}
+                  <time
+                    dateTime={post.date}
+                    className="text-sm text-muted-foreground"
+                  >
+                    {formatDate(post.date)}
+                  </time>
+                </div>
+              </div>
         </div>
 
         {post.coverImage && (
-          <CoverImageWithSkeleton src={post.coverImage} alt="Cover Image" />
+          <CoverImageWithSkeleton src={post.coverImage} alt={post.title} />
         )}
 
-        <article>
+        <header className="mt-16 mb-8">
+          <div className="space-y-4 w-full flex flex-col items-center">
+            <div className="space-y-2 w-full flex flex-col items-center">
+              <h1 className="text-3xl text-center font-semibold tracking-tight text-foreground sm:text-4xl">
+                {post.title}
+              </h1>
+              {post.description && (
+                <p className="max-w-2xl text-base text-center leading-7 text-muted-foreground sm:text-lg">
+                  {post.description}
+                </p>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              
+
+              {post.tags?.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {post.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="inline-flex items-center capitalize gap-1.5 px-2.5 py-1 rounded-md bg-muted/60 text-sm text-foreground"
+                      >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </header>
+
+        <article className="prose prose-neutral dark:prose-invert max-w-none">
           <MDXContent
             components={{
               ...ClientComponents,
-              h1: ({ children }: { children: React.ReactNode }) => (
-                <div>
-                  <h1>{children}</h1>
-                  <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                    <time dateTime={post.date}>{formatDate(post.date)}</time>
-                    {post.tags.length > 0 && (
-                      <>
-                        <span className="text-border">·</span>
-                        {post.tags.map((tag) => (
-                          <span key={tag} className="capitalize">
-                            {tag}
-                          </span>
-                        ))}
-                      </>
-                    )}
-                  </div>
-                </div>
-              ),
+              h1: () => null,
             }}
           />
         </article>

@@ -496,7 +496,7 @@ export default function HomeContent({ posts }: { posts: any[] }) {
           <div className="mt-12">
             <div className="flex items-center gap-4">
               <a
-                href="https://x.com/jamesdawson_x"
+                href="https://x.com/jamesdawsonx"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Follow James on X (formerly Twitter)"
