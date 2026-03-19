@@ -364,7 +364,8 @@ function ContentNav({
             className="inline-flex items-center gap-2 rounded-full border border-border bg-background/80 px-4 py-2.5 text-sm text-muted-foreground shadow-[0_8px_30px_rgba(0,0,0,0.08)] backdrop-blur-md transition-colors hover:text-foreground"
           >
             <Download size={16} />
-            Download CV
+            <span className="hidden md:block">Download CV</span>
+            <span className="block md:hidden">Download</span>
           </motion.a>
         )}
       </AnimatePresence>
