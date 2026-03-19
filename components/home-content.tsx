@@ -213,10 +213,10 @@ function Badge({
           backgroundColor:
             isHovered || isFocused || isLocked
               ? "#000000"
-              : "hsl(80, 12.30%, 85.70%)",
+              : "#dcdfd6",
         }}
         transition={{ duration: 0.2, ease: "easeInOut" }}
-        className={`cursor-pointer rounded border-0 !p-1 font-medium leading-none text-foreground hover:!text-background ${
+        className={`cursor-pointer rounded bg-[#dcdfd6] border-0 !p-1 font-medium leading-none text-foreground hover:!text-background ${
           shouldBlur ? "select-none" : ""
         } ${isLocked || isFocused ? "!text-background" : ""}`}
       >
