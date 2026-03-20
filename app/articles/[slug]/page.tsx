@@ -126,9 +126,13 @@ export default async function BlogPost({
                 </div>
               </div>
         </div>
-
-        {post.coverImage && (
-          <CoverImageWithSkeleton src={post.coverImage} alt={post.title} />
+                
+        {(post.coverImage || post.videoImage) && (
+          <CoverImageWithSkeleton
+            src={post.coverImage}
+            videoSrc={post.videoImage}
+            alt={post.title}
+          />
         )}
 
         <header className="mt-16 mb-8">
