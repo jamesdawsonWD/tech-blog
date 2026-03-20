@@ -412,7 +412,7 @@ export default function HomeContent({ posts }: { posts: any[] }) {
 
             <div className="relative mt-[12px]">
               <div className="absolute top-1/2 right-full mr-4 h-px w-[50vw] bg-[#F0F4EF]" />
-              <h1 className="font-inria-serif text-[48px] font-bold italic leading-[1.184] tracking-[-0.0125em] xl:text-[64px]">
+              <h1 className="font-inria-serif text-[32px] font-bold italic leading-[1.184] tracking-[-0.0125em] xl:text-[48px]">
                 Hi, I&rsquo;m James.
               </h1>
             </div>
@@ -536,7 +536,7 @@ export default function HomeContent({ posts }: { posts: any[] }) {
         </div>
 
         <div
-          className="relative flex h-full min-h-0 flex-col p-0 xl:p-24"
+          className="relative flex h-full min-h-0 flex-col"
           role="region"
           aria-label="Content area"
         >
@@ -552,9 +552,9 @@ export default function HomeContent({ posts }: { posts: any[] }) {
               <div
                 key="blog-content"
                 id="blog-content"
-                className="h-full overflow-y-auto pr-2 pb-28"
+                className="h-full overflow-y-auto pr-2 pb-28  p-0 xl:p-24"
               >
-                <div className="max-w-lg space-y-10 xl:max-w-none">
+                <div className="max-w-lg space-y-4 xl:max-w-none">
                   {posts.map((post) => (
                     <ArticleCard key={post.slug} post={post} />
                   ))}
