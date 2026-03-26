@@ -10,7 +10,7 @@ const MUTED_FOREGROUND = "hsl(25, 5.3%, 44.7%)";
 const BACKGROUND = "hsl(72, 83%, 98%)";
 const MUTED_BG = "hsla(60, 4.8%, 95.9%, 0.6)";
 
-function buildHtml(): string {
+function buildHtml(title: string = "Senior Design Engineer"): string {
   const experienceHtml = EXPERIENCE.map(
     (job) => `
       <div class="job">
@@ -106,7 +106,7 @@ function buildHtml(): string {
 </head>
 <body>
   <p class="intro">
-    Hi, I am James Dawson. <strong>Senior Design Engineer</strong> building beautiful experiences and crafting wonderful UIs for
+    Hi, I am James Dawson. <strong>${escapeHtml(title)}</strong> building beautiful experiences and crafting wonderful UIs for
     modern web products. Primarily in the Web3.
   </p>
 
@@ -136,28 +136,37 @@ function escapeHtml(text: string): string {
 }
 
 async function main() {
-  const html = buildHtml();
+  const titles = process.argv.length > 2
+    ? process.argv.slice(2)
+    : ["Senior Design Engineer"];
+
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
 
-  await page.setContent(html, { waitUntil: "networkidle0" });
-  await page.emulateMediaType("print");
-
-  const outputPath = join(__dirname, "..", "public", "cv.pdf");
-  const outputDir = dirname(outputPath);
+  const outputDir = join(__dirname, "..", "public");
   if (!existsSync(outputDir)) {
     mkdirSync(outputDir, { recursive: true });
   }
 
-  await page.pdf({
-    format: "A4",
-    printBackground: true,
-    path: outputPath,
-    margin: { top: 0, right: 0, bottom: 0, left: 0 },
-  });
+  for (const title of titles) {
+    const html = buildHtml(title);
+    await page.setContent(html, { waitUntil: "networkidle0" });
+    await page.emulateMediaType("print");
+
+    const slug = title.toLowerCase().replace(/\s+/g, "-");
+    const outputPath = join(outputDir, `cv-${slug}.pdf`);
+
+    await page.pdf({
+      format: "A4",
+      printBackground: true,
+      path: outputPath,
+      margin: { top: 0, right: 0, bottom: 0, left: 0 },
+    });
+
+    console.log(`PDF written to ${outputPath}`);
+  }
 
   await browser.close();
-  console.log(`PDF written to ${outputPath}`);
 }
 
 main().catch((err) => {
