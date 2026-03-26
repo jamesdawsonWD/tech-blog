@@ -21,7 +21,6 @@ import IncludesDemo from "@/components/array-cheatsheet/includes";
 import PushDemo from "@/components/array-cheatsheet/push";
 import Captcha from "@/components/captcha/captcha";
 import RadialButtonDemo from "@/components/radial-button/radial-button-demo";
-import FamilySwap from "@/components/family-swap/family-swap";
 import rehypeSectionize from "@/lib/rehype-sectionize";
 import CoverImageWithSkeleton from "@/components/blog/cover-image-with-skeleton";
 
@@ -74,7 +73,6 @@ export default async function BlogPost({
     PushDemo,
     Captcha,
     RadialButtonDemo,
-    FamilySwap,
   };
 
   type ComponentName = keyof typeof AllClientComponents;
