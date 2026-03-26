@@ -43,20 +43,19 @@ export function CVView({ onClose }: { onClose: () => void }) {
         </p>
 
         <div className="mt-6 border-t border-white/10 pt-6">
-          <span className="mb-4 block text-sm font-semibold text-white">
+          <span className="mb-4 block text-xs font-semibold uppercase tracking-wider text-white/40">
             Experience
           </span>
-          <div className="space-y-6">
+          <div className="space-y-5">
             {EXPERIENCE.map((job) => (
-              <div key={job.company}>
-                <div className="flex flex-wrap items-baseline gap-x-2">
-                  <span className="text-base font-semibold text-white">
-                    {job.role}
-                  </span>
-                  <span className="text-base text-white/50">{job.company}</span>
-                </div>
-                <p className="mt-0.5 text-sm text-white/40">{job.period}</p>
-                <p className="mt-1.5 text-base leading-relaxed text-white/60">
+              <div key={job.company} className="flex flex-col">
+                <span className="text-sm font-medium text-white">
+                  {job.role}
+                </span>
+                <span className="text-sm text-white/40">
+                  {job.company} &middot; {job.period}
+                </span>
+                <p className="mt-1 text-sm leading-relaxed text-white/70">
                   {job.description}
                 </p>
               </div>
@@ -65,7 +64,7 @@ export function CVView({ onClose }: { onClose: () => void }) {
         </div>
 
         <div className="mt-6 border-t border-white/10 pt-6">
-          <span className="mb-3 block text-sm font-semibold text-white">
+          <span className="mb-3 block text-xs font-semibold uppercase tracking-wider text-white/40">
             Skills
           </span>
           <div className="flex flex-wrap gap-1.5">
@@ -83,15 +82,17 @@ export function CVView({ onClose }: { onClose: () => void }) {
         </div>
 
         <div className="mt-6 border-t border-white/10 pt-6">
-          <span className="text-sm font-semibold text-white">
+          <span className="mb-3 block text-xs font-semibold uppercase tracking-wider text-white/40">
             Education
           </span>
-          <p className="mt-1 text-base text-white">
-            University of Stirling
-          </p>
-          <p className="text-sm text-white/50">
-            Software Engineering BEng &middot; 2012&ndash;2017
-          </p>
+          <div className="flex flex-col">
+            <span className="text-sm font-medium text-white">
+              University of Stirling
+            </span>
+            <span className="text-sm text-white/40">
+              Software Engineering BEng &middot; 2012&ndash;2017
+            </span>
+          </div>
         </div>
       </div>
     </div>
