@@ -136,6 +136,7 @@ export default async function BlogPost({
             src={post.coverImage}
             videoSrc={post.videoImage}
             alt={post.title}
+            slug={slug}
           />
         )}
 

@@ -6,8 +6,8 @@ export default async function Home() {
   const posts = await getAllPosts();
 
   return (
-    <div className="xl:h-screen bg-background xl:overflow-hidden h-full overflow-y-auto">
-      <main className="h-full">
+    <div className="min-h-screen bg-background">
+      <main>
         <Suspense fallback={null}>
           <HomeContent posts={posts} />
         </Suspense>

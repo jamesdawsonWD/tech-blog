@@ -18,6 +18,7 @@ export interface Post {
   author: Author
   coverImage?: string
   videoImage?: string
+  showcase?: boolean
   tags: string[]
   components: string[]
 }
@@ -45,6 +46,7 @@ export async function getAllPosts(): Promise<PostMeta[]> {
       author: data.author,
       coverImage: data.coverImage,
       videoImage: data.videoImage,
+      showcase: data.showcase || false,
       tags: data.tags || [],
       components: data.components || []
     }
@@ -69,6 +71,7 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
     author: data.author,
     coverImage: data.coverImage,
     videoImage: data.videoImage,
+    showcase: data.showcase || false,
     tags: data.tags || [],
     components: data.components || []
   }

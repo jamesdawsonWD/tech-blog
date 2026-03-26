@@ -5,6 +5,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { PostHogProvider } from "@/components/PostHogProvider";
 import { Analytics } from "@vercel/analytics/next"
+import DynamicIslandLoader from "@/components/dynamic-island/dynamic-island-loader";
 
 const inter = Inter({ subsets: ["latin"] });
 const inriaSerif = Inria_Serif({ subsets: ["latin"], weight: ["300", "400", "700"], style: ["normal", "italic"], variable: "--font-inria-serif" });
@@ -31,6 +32,7 @@ export default function RootLayout({
             enableSystem={false}
             disableTransitionOnChange
           >
+            <DynamicIslandLoader />
             {children}
           </ThemeProvider>
         </PostHogProvider>

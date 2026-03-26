@@ -7,10 +7,12 @@ export default function CoverImageWithSkeleton({
   src,
   videoSrc,
   alt,
+  slug,
 }: {
   src?: string;
   videoSrc?: string;
   alt: string;
+  slug?: string;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
@@ -50,7 +52,10 @@ export default function CoverImageWithSkeleton({
   }, [shouldShowVideo, videoSrc]);
 
   return (
-    <div className="relative w-full h-[300px] md:h-[450px] lg:h-[560px] mb-12 rounded-xl overflow-hidden">
+    <div
+      className="relative w-full h-[300px] md:h-[450px] lg:h-[560px] mb-12 rounded-xl overflow-hidden"
+      style={slug ? { viewTransitionName: `cover-${slug}` } : undefined}
+    >
       {!isLoaded && (
         <div className="absolute inset-0 z-20 animate-pulse bg-[#F0F4EF]" />
       )}

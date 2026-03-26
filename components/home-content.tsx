@@ -1,13 +1,11 @@
 "use client";
 
-import { useState, useRef, useEffect, type ReactNode } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useRef, useEffect, useCallback, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { FaXTwitter, FaGithub, FaLinkedin } from "react-icons/fa6";
-import { Download } from "lucide-react";
 import ArticleCard from "@/components/article-card";
+import ShowcaseCard from "@/components/showcase-card";
 import PhotoGallery from "@/components/photo-gallery";
-import CVSection from "@/components/cv-section";
 
 const BADGES = [
   { label: "Dog Dad", key: "dog-dad" },
@@ -238,151 +236,51 @@ function Badge({
   );
 }
 
-function ContentNav({
-  activeView,
-  rightSectionView,
-  router,
-  floating = false,
-}: {
-  activeView: BadgeKey;
-  rightSectionView: BadgeKey;
-  router: ReturnType<typeof useRouter>;
-  floating?: boolean;
-}) {
-  return (
-    <motion.div
-      layout
-      className={
-        floating
-          ? "pointer-events-auto flex items-center gap-3"
-          : "flex items-center gap-3"
-      }
-      transition={{
-        layout: {
-          type: "spring",
-          stiffness: 380,
-          damping: 32,
-          mass: 0.85,
-        },
-      }}
-    >
-      <motion.nav
-        layout
-        role="tablist"
-        aria-label="Content navigation"
-        className="inline-flex items-center rounded-full bg-[#F0F4EF]/80 p-1 shadow-[0_8px_30px_rgba(0,0,0,0.08)] backdrop-blur-sm"
-        transition={{
-          layout: {
-            type: "spring",
-            stiffness: 380,
-            damping: 32,
-            mass: 0.85,
-          },
-        }}
-      >
-        {[
-          { label: "Blog", key: "blog" },
-          { label: "Experience", key: "experience" },
-        ].map((item) => {
-          const active =
-            item.key === "blog"
-              ? activeView !== "last-10-years"
-              : activeView === "last-10-years";
-
-          return (
-            <motion.button
-              layout
-              key={item.key}
-              role="tab"
-              type="button"
-              aria-selected={active}
-              aria-controls={
-                item.key === "blog" ? "blog-content" : "experience-content"
-              }
-              id={`${item.key}-tab`}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => {
-                if (item.key === "blog") {
-                  router.push("/", { scroll: false });
-                } else {
-                  router.push("/?view=last-10-years", { scroll: false });
-                }
-              }}
-              className={`relative cursor-pointer rounded-full px-5 py-2.5 text-sm transition-colors ${
-                active ? "text-background" : "text-muted-foreground"
-              }`}
-              transition={{
-                layout: {
-                  type: "spring",
-                  stiffness: 380,
-                  damping: 32,
-                  mass: 0.85,
-                },
-              }}
-            >
-              {active && (
-                <motion.span
-                  layoutId={
-                    floating ? "mode-pill-floating" : "mode-pill-inline"
-                  }
-                  className="absolute inset-0 rounded-full bg-foreground shadow-[0_8px_24px_rgba(20,20,20,0.08)]"
-                  transition={{
-                    type: "spring",
-                    stiffness: 420,
-                    damping: 34,
-                    mass: 0.8,
-                  }}
-                />
-              )}
-              <span className="relative z-10">{item.label}</span>
-            </motion.button>
-          );
-        })}
-      </motion.nav>
-
-      <AnimatePresence mode="popLayout" initial={false}>
-        {rightSectionView === "last-10-years" && (
-          <motion.a
-            layout
-            key={floating ? "download-cv-floating" : "download-cv-inline"}
-            initial={{ opacity: 0, x: -8, scale: 0.96 }}
-            animate={{ opacity: 1, x: 0, scale: 1 }}
-            exit={{ opacity: 0, x: -8, scale: 0.96 }}
-            transition={{
-              layout: {
-                type: "spring",
-                stiffness: 380,
-                damping: 32,
-                mass: 0.85,
-              },
-              opacity: { duration: 0.16 },
-              x: { duration: 0.2, ease: "easeOut" },
-              scale: { duration: 0.16 },
-            }}
-            href="/cv.pdf"
-            download="james-dawson-cv.pdf"
-            className="inline-flex items-center gap-2 rounded-full border border-border bg-background/80 px-4 py-2.5 text-sm text-muted-foreground shadow-[0_8px_30px_rgba(0,0,0,0.08)] backdrop-blur-md transition-colors hover:text-foreground"
-          >
-            <Download size={16} />
-            <span className="hidden md:block">Download CV</span>
-            <span className="block md:hidden">Download</span>
-          </motion.a>
-        )}
-      </AnimatePresence>
-    </motion.div>
-  );
-}
-
 export default function HomeContent({ posts }: { posts: any[] }) {
   const [hoveredBioBadge, setHoveredBioBadge] = useState<BadgeKey>(null);
   const [activeBioBadge, setActiveBioBadge] = useState<BadgeKey>(null);
   const bioRef = useRef<HTMLDivElement | null>(null);
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const activeView = (searchParams.get("view") as BadgeKey) || null;
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const [leftGradientOpacity, setLeftGradientOpacity] = useState(0);
+  const [rightGradientOpacity, setRightGradientOpacity] = useState(0);
 
   const visibleBioBadge = hoveredBioBadge ?? activeBioBadge;
-  const rightSectionView = activeView ?? "write";
+
+  const SHOWCASE_ORDER = [
+    "radial-menu-button",
+    "moon-beam-toggle",
+    "pixel-recaptcha-game",
+    "exploring-friction-patterns-can-save-you-millions",
+  ];
+  const showcasePosts = posts
+    .filter((p) => p.showcase)
+    .sort(
+      (a, b) =>
+        (SHOWCASE_ORDER.indexOf(a.slug) === -1 ? 999 : SHOWCASE_ORDER.indexOf(a.slug)) -
+        (SHOWCASE_ORDER.indexOf(b.slug) === -1 ? 999 : SHOWCASE_ORDER.indexOf(b.slug))
+    );
+  const articlePosts = posts.filter((p) => !p.showcase);
+
+  const updateGradients = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const FADE_DISTANCE = 60;
+    const maxScroll = el.scrollWidth - el.clientWidth;
+    setLeftGradientOpacity(Math.min(el.scrollLeft / FADE_DISTANCE, 1));
+    setRightGradientOpacity(Math.min((maxScroll - el.scrollLeft) / FADE_DISTANCE, 1));
+  }, []);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    updateGradients();
+    el.addEventListener("scroll", updateGradients, { passive: true });
+    window.addEventListener("resize", updateGradients);
+    return () => {
+      el.removeEventListener("scroll", updateGradients);
+      window.removeEventListener("resize", updateGradients);
+    };
+  }, [updateGradients]);
 
   useEffect(() => {
     function handlePointerDown(event: PointerEvent) {
@@ -403,188 +301,152 @@ export default function HomeContent({ posts }: { posts: any[] }) {
     <>
       <PhotoPreloader />
 
-      <div className="grid h-full grid-cols-1 gap-12 px-8 pb-24 xl:grid-cols-2 xl:gap-0 xl:pl-24 xl:pb-0">
-        <div className="flex flex-col justify-between border-[#F0F4EF] py-16 md:border-r md:pr-24 lg:py-24">
-          <div>
-            <p className="ml-1 text-base font-extralight leading-[1.184] tracking-[0.53em] text-muted-foreground">
-              Design Engineer
-            </p>
+      <div className="mx-auto max-w-[692px] px-6 py-20 sm:py-24">
+        {/* Bio */}
+        <div>
+          <p className="text-base font-extralight leading-[1.184] tracking-[0.53em] text-muted-foreground">
+            Design Engineer
+          </p>
 
-            <div className="relative mt-[12px]">
-              <div className="absolute top-1/2 right-full mr-4 h-px w-[50vw] bg-[#F0F4EF]" />
-              <h1 className="font-inria-serif text-[32px] font-bold italic leading-[1.184] tracking-[-0.0125em] xl:text-[48px]">
-                Hi, I&rsquo;m James.
-              </h1>
-            </div>
+          <h1 className="mt-3 font-inria-serif text-[32px] font-bold italic leading-[1.184] tracking-[-0.0125em] sm:text-[48px]">
+            Hi, I&rsquo;m James.
+          </h1>
 
+          <div
+            ref={bioRef}
+            className="mt-4 text-base font-normal leading-[2] tracking-[-0.0125em] text-[#141414]"
+          >
+            <BlurrableSpan hoveredBadge={visibleBioBadge} badgeKey={null}>
+              A very recent{" "}
+            </BlurrableSpan>
+
+            <Badge
+              label="Human Dad"
+              badgeKey="human-father"
+              hoveredBadge={visibleBioBadge}
+              isLocked={activeBioBadge === "human-father"}
+              previewSide="right"
+              preview={<PhotoGallery galleryKey="human-father" />}
+              onHover={() => setHoveredBioBadge("human-father")}
+              onLeave={() => setHoveredBioBadge(null)}
+              onFocus={() => setHoveredBioBadge("human-father")}
+              onBlur={() => setHoveredBioBadge(null)}
+              onClick={() =>
+                setActiveBioBadge((current) =>
+                  current === "human-father" ? null : "human-father"
+                )
+              }
+            />
+
+            <BlurrableSpan hoveredBadge={visibleBioBadge} badgeKey={null}>
+              , a less recent{" "}
+            </BlurrableSpan>
+
+            <Badge
+              label="Dog Dad"
+              badgeKey="dog-dad"
+              hoveredBadge={visibleBioBadge}
+              isLocked={activeBioBadge === "dog-dad"}
+              previewSide="right"
+              preview={<PhotoGallery galleryKey="dog-dad" />}
+              onHover={() => setHoveredBioBadge("dog-dad")}
+              onLeave={() => setHoveredBioBadge(null)}
+              onFocus={() => setHoveredBioBadge("dog-dad")}
+              onBlur={() => setHoveredBioBadge(null)}
+              onClick={() =>
+                setActiveBioBadge((current) =>
+                  current === "dog-dad" ? null : "dog-dad"
+                )
+              }
+            />
+
+            <BlurrableSpan hoveredBadge={visibleBioBadge} badgeKey={null}>
+              {" "}and a{" "}
+            </BlurrableSpan>
+
+            <Badge
+              label="Husband-to-be"
+              badgeKey="husband"
+              hoveredBadge={visibleBioBadge}
+              isLocked={activeBioBadge === "husband"}
+              previewSide="right"
+              preview={<PhotoGallery galleryKey="husband" />}
+              onHover={() => setHoveredBioBadge("husband")}
+              onLeave={() => setHoveredBioBadge(null)}
+              onFocus={() => setHoveredBioBadge("husband")}
+              onBlur={() => setHoveredBioBadge(null)}
+              onClick={() =>
+                setActiveBioBadge((current) =>
+                  current === "husband" ? null : "husband"
+                )
+              }
+            />
+
+            <BlurrableSpan hoveredBadge={visibleBioBadge} badgeKey={null}>
+              . For the last <strong>10 years</strong> I have been <strong>Designing and Building</strong> web
+              based software. 
+            </BlurrableSpan>
+          </div>
+
+          <div className="mt-6 flex items-center gap-4">
+            <a
+              href="https://x.com/jamesdawsonx"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Follow James on X (formerly Twitter)"
+              className="text-foreground transition-colors hover:text-muted-foreground"
+            >
+              <FaXTwitter size={18} />
+            </a>
+            <a
+              href="https://github.com/jamesdawsonWD"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="View James's GitHub profile"
+              className="text-foreground transition-colors hover:text-muted-foreground"
+            >
+              <FaGithub size={18} />
+            </a>
+            <a
+              href="https://www.linkedin.com/in/james-dawson-245707174/"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="View James's Linkedin profile"
+              className="text-foreground transition-colors hover:text-muted-foreground"
+            >
+              <FaLinkedin size={18} />
+            </a>
+          </div>
+        </div>
+
+        {/* Showcase */}
+        {showcasePosts.length > 0 && (
+          <section className="relative -mx-6 mt-16">
             <div
-              ref={bioRef}
-              className="mt-4 max-w-[420px] text-base font-normal leading-[2] tracking-[-0.0125em] text-[#141414]"
+              className="pointer-events-none absolute inset-y-0 left-0 z-10 w-12 bg-gradient-to-r from-background to-transparent"
+              style={{ opacity: leftGradientOpacity }}
+            />
+            <div
+              className="pointer-events-none absolute inset-y-0 right-0 z-10 w-12 bg-gradient-to-l from-background to-transparent"
+              style={{ opacity: rightGradientOpacity }}
+            />
+            <div
+              ref={scrollRef}
+              className="flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-4 scrollbar-none"
             >
-              <BlurrableSpan hoveredBadge={visibleBioBadge} badgeKey={null}>
-                A very recent{" "}
-              </BlurrableSpan>
-
-              <Badge
-                label="Human Dad"
-                badgeKey="human-father"
-                hoveredBadge={visibleBioBadge}
-                isLocked={activeBioBadge === "human-father"}
-                previewSide="right"
-                preview={<PhotoGallery galleryKey="human-father" />}
-                onHover={() => setHoveredBioBadge("human-father")}
-                onLeave={() => setHoveredBioBadge(null)}
-                onFocus={() => setHoveredBioBadge("human-father")}
-                onBlur={() => setHoveredBioBadge(null)}
-                onClick={() =>
-                  setActiveBioBadge((current) =>
-                    current === "human-father" ? null : "human-father"
-                  )
-                }
-              />
-
-              <BlurrableSpan hoveredBadge={visibleBioBadge} badgeKey={null}>
-                , a less recent{" "}
-              </BlurrableSpan>
-
-              <Badge
-                label="Dog Dad"
-                badgeKey="dog-dad"
-                hoveredBadge={visibleBioBadge}
-                isLocked={activeBioBadge === "dog-dad"}
-                previewSide="left"
-                preview={<PhotoGallery galleryKey="dog-dad" />}
-                onHover={() => setHoveredBioBadge("dog-dad")}
-                onLeave={() => setHoveredBioBadge(null)}
-                onFocus={() => setHoveredBioBadge("dog-dad")}
-                onBlur={() => setHoveredBioBadge(null)}
-                onClick={() =>
-                  setActiveBioBadge((current) =>
-                    current === "dog-dad" ? null : "dog-dad"
-                  )
-                }
-              />
-
-              <BlurrableSpan hoveredBadge={visibleBioBadge} badgeKey={null}>
-                {" "}and a{" "}
-              </BlurrableSpan>
-
-              <Badge
-                label="Husband-to-be"
-                badgeKey="husband"
-                hoveredBadge={visibleBioBadge}
-                isLocked={activeBioBadge === "husband"}
-                previewSide="right"
-                preview={<PhotoGallery galleryKey="husband" />}
-                onHover={() => setHoveredBioBadge("husband")}
-                onLeave={() => setHoveredBioBadge(null)}
-                onFocus={() => setHoveredBioBadge("husband")}
-                onBlur={() => setHoveredBioBadge(null)}
-                onClick={() =>
-                  setActiveBioBadge((current) =>
-                    current === "husband" ? null : "husband"
-                  )
-                }
-              />
-
-              <BlurrableSpan hoveredBadge={visibleBioBadge} badgeKey={null}>
-                . For the last 10 years I have been Designing and Building web
-                based software. I like to write about it all.
-              </BlurrableSpan>
+              {showcasePosts.map((post) => (
+                <ShowcaseCard key={post.slug} post={post} />
+              ))}
             </div>
-          </div>
+          </section>
+        )}
 
-          <div className="mt-12">
-            <div className="flex items-center gap-4">
-              <a
-                href="https://x.com/jamesdawsonx"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Follow James on X (formerly Twitter)"
-                className="text-foreground transition-colors hover:text-muted-foreground"
-              >
-                <FaXTwitter size={18} />
-              </a>
-              <a
-                href="https://github.com/jamesdawsonWD"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="View James's GitHub profile"
-                className="text-foreground transition-colors hover:text-muted-foreground"
-              >
-                <FaGithub size={18} />
-              </a>
-              <a
-                href="https://www.linkedin.com/in/james-dawson-245707174/"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="View James's Linkedin profile"
-                className="text-foreground transition-colors hover:text-muted-foreground"
-              >
-                <FaLinkedin size={18} />
-              </a>
-            </div>
-
-            <div className="mt-16 xl:hidden">
-              <ContentNav
-                activeView={activeView}
-                rightSectionView={rightSectionView}
-                router={router}
-              />
-            </div>
-          </div>
-        </div>
-
-        <div
-          className="relative flex h-full min-h-0 flex-col"
-          role="region"
-          aria-label="Content area"
-        >
-          <div className="min-h-0 flex-1">
-            {rightSectionView === "last-10-years" ? (
-              <div
-                id="experience-content"
-                className="h-full overflow-y-auto pr-2 pb-28"
-              >
-                <CVSection key="cv" />
-              </div>
-            ) : (
-              <div
-                key="blog-content"
-                id="blog-content"
-                className="h-full overflow-y-auto pr-2 pb-28  p-0 xl:p-24"
-              >
-                <div className="max-w-lg space-y-4 xl:max-w-none">
-                  {posts.map((post) => (
-                    <ArticleCard key={post.slug} post={post} />
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          <AnimatePresence mode="popLayout" initial={false}>
-            <motion.div
-              layout
-              className="pointer-events-none absolute inset-x-0 bottom-6 z-50 hidden justify-center xl:flex"
-              transition={{
-                layout: {
-                  type: "spring",
-                  stiffness: 380,
-                  damping: 32,
-                  mass: 0.85,
-                },
-              }}
-            >
-              <ContentNav
-                activeView={activeView}
-                rightSectionView={rightSectionView}
-                router={router}
-                floating
-              />
-            </motion.div>
-          </AnimatePresence>
-        </div>
+        {/* Articles */}
+        <section className="mt-12 space-y-1">
+          {articlePosts.map((post) => (
+            <ArticleCard key={post.slug} post={post} />
+          ))}
+        </section>
       </div>
     </>
   );
