@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback, type ReactNode } from "react";
+import { useState, useRef, useEffect, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { FaXTwitter, FaGithub, FaLinkedin } from "react-icons/fa6";
 import ArticleCard from "@/components/article-card";
 import ShowcaseCard from "@/components/showcase-card";
 import PhotoGallery from "@/components/photo-gallery";
+import ScrambleText from "@/components/scramble-text";
 
 const BADGES = [
   { label: "Dog Dad", key: "dog-dad" },
@@ -240,9 +241,6 @@ export default function HomeContent({ posts }: { posts: any[] }) {
   const [hoveredBioBadge, setHoveredBioBadge] = useState<BadgeKey>(null);
   const [activeBioBadge, setActiveBioBadge] = useState<BadgeKey>(null);
   const bioRef = useRef<HTMLDivElement | null>(null);
-  const scrollRef = useRef<HTMLDivElement | null>(null);
-  const [leftGradientOpacity, setLeftGradientOpacity] = useState(0);
-  const [rightGradientOpacity, setRightGradientOpacity] = useState(0);
 
   const visibleBioBadge = hoveredBioBadge ?? activeBioBadge;
 
@@ -260,27 +258,6 @@ export default function HomeContent({ posts }: { posts: any[] }) {
         (SHOWCASE_ORDER.indexOf(b.slug) === -1 ? 999 : SHOWCASE_ORDER.indexOf(b.slug))
     );
   const articlePosts = posts.filter((p) => !p.showcase);
-
-  const updateGradients = useCallback(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const FADE_DISTANCE = 60;
-    const maxScroll = el.scrollWidth - el.clientWidth;
-    setLeftGradientOpacity(Math.min(el.scrollLeft / FADE_DISTANCE, 1));
-    setRightGradientOpacity(Math.min((maxScroll - el.scrollLeft) / FADE_DISTANCE, 1));
-  }, []);
-
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    updateGradients();
-    el.addEventListener("scroll", updateGradients, { passive: true });
-    window.addEventListener("resize", updateGradients);
-    return () => {
-      el.removeEventListener("scroll", updateGradients);
-      window.removeEventListener("resize", updateGradients);
-    };
-  }, [updateGradients]);
 
   useEffect(() => {
     function handlePointerDown(event: PointerEvent) {
@@ -301,11 +278,11 @@ export default function HomeContent({ posts }: { posts: any[] }) {
     <>
       <PhotoPreloader />
 
-      <div className="mx-auto max-w-[692px] px-6 py-20 sm:py-24">
+      <div className="mx-auto max-w-[692px] px-6 py-20 sm:py-28">
         {/* Bio */}
-        <div>
+        <div className="px-4">
           <p className="text-base font-extralight leading-[1.184] tracking-[0.53em] text-muted-foreground">
-            Design Engineer
+            <ScrambleText />
           </p>
 
           <h1 className="mt-3 font-inria-serif text-[32px] font-bold italic leading-[1.184] tracking-[-0.0125em] sm:text-[48px]">
@@ -369,7 +346,7 @@ export default function HomeContent({ posts }: { posts: any[] }) {
               badgeKey="husband"
               hoveredBadge={visibleBioBadge}
               isLocked={activeBioBadge === "husband"}
-              previewSide="right"
+              previewSide="left"
               preview={<PhotoGallery galleryKey="husband" />}
               onHover={() => setHoveredBioBadge("husband")}
               onLeave={() => setHoveredBioBadge(null)}
@@ -421,23 +398,10 @@ export default function HomeContent({ posts }: { posts: any[] }) {
 
         {/* Showcase */}
         {showcasePosts.length > 0 && (
-          <section className="relative -mx-6 mt-16">
-            <div
-              className="pointer-events-none absolute inset-y-0 left-0 z-10 w-12 bg-gradient-to-r from-background to-transparent"
-              style={{ opacity: leftGradientOpacity }}
-            />
-            <div
-              className="pointer-events-none absolute inset-y-0 right-0 z-10 w-12 bg-gradient-to-l from-background to-transparent"
-              style={{ opacity: rightGradientOpacity }}
-            />
-            <div
-              ref={scrollRef}
-              className="flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-4 scrollbar-none"
-            >
-              {showcasePosts.map((post) => (
-                <ShowcaseCard key={post.slug} post={post} />
-              ))}
-            </div>
+          <section className="mt-16 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {showcasePosts.map((post) => (
+              <ShowcaseCard key={post.slug} post={post} />
+            ))}
           </section>
         )}
 

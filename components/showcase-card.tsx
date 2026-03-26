@@ -17,7 +17,7 @@ export default function ShowcaseCard({ post }: { post: any }) {
   return (
     <Link
       href={`/articles/${post.slug}`}
-      className="group block w-[320px] shrink-0 snap-start rounded-lg p-4 hover:bg-[#dcdfd6]/30"
+      className="group block rounded-lg p-4 hover:bg-[#dcdfd6]/30"
     >
       {post.videoImage && (
         <div
