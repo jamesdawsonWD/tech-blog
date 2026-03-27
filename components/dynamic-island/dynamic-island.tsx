@@ -70,7 +70,7 @@ export default function DynamicIsland() {
   const constraintsRef = useRef<HTMLDivElement | null>(null);
   const islandRef = useRef<HTMLDivElement | null>(null);
   const dragControls = useDragControls();
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState<boolean | null>(null);
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 768px)");
@@ -79,6 +79,10 @@ export default function DynamicIsland() {
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);
   }, []);
+
+  // Until we know the screen size, treat as mobile (no blur, no layout animation)
+  // to avoid the flash-of-blur on hydration
+  const simplifyAnimations = isMobile !== false;
 
   const track = TRACKS[trackIndex];
 
@@ -202,10 +206,10 @@ export default function DynamicIsland() {
       >
         <div className="pointer-events-none absolute inset-x-0 top-4 flex justify-center">
         <motion.div
-          drag={!isMobile}
-          dragControls={isMobile ? undefined : dragControls}
+          drag={!simplifyAnimations}
+          dragControls={simplifyAnimations ? undefined : dragControls}
           dragMomentum={false}
-          dragConstraints={isMobile ? undefined : constraintsRef}
+          dragConstraints={simplifyAnimations ? undefined : constraintsRef}
           dragElastic={0.075}
           initial={{ y: -80, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -215,14 +219,14 @@ export default function DynamicIsland() {
             duration: 0.8,
             delay: 0.3,
           }}
-          className={`pointer-events-auto w-fit ${isMobile ? "" : "cursor-grab active:cursor-grabbing"}`}
-          style={isMobile ? undefined : { touchAction: "none" }}
+          className={`pointer-events-auto w-fit ${simplifyAnimations ? "" : "cursor-grab active:cursor-grabbing"}`}
+          style={simplifyAnimations ? undefined : { touchAction: "none" }}
         >
           {/* The island container — layout animates width & height with spring on desktop,
               snaps instantly on mobile to avoid layout thrashing */}
           <motion.div
             ref={islandRef}
-            layout={!isMobile}
+            layout={!simplifyAnimations}
             transition={{
               layout: {
                 type: "spring",
@@ -238,13 +242,13 @@ export default function DynamicIsland() {
             <motion.div
               key={view}
               transition={
-                isMobile
+                simplifyAnimations
                   ? { duration: 0.2, ease: [0.23, 1, 0.32, 1] }
                   : { type: "spring", bounce }
               }
               initial={
-                isMobile
-                  ? { opacity: 0 }
+                simplifyAnimations
+                  ? { opacity: 0, filter: "blur(0px)" }
                   : {
                       scale: 0.9,
                       opacity: 0,
@@ -254,8 +258,8 @@ export default function DynamicIsland() {
                     }
               }
               animate={
-                isMobile
-                  ? { opacity: 1 }
+                simplifyAnimations
+                  ? { opacity: 1, filter: "blur(0px)" }
                   : {
                       scale: 1,
                       opacity: 1,
