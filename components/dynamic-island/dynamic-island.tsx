@@ -222,16 +222,16 @@ export default function DynamicIsland() {
           className={`pointer-events-auto w-fit ${simplifyAnimations ? "" : "cursor-grab active:cursor-grabbing"}`}
           style={simplifyAnimations ? undefined : { touchAction: "none" }}
         >
-          {/* The island container — layout animates width & height with spring on desktop,
-              snaps instantly on mobile to avoid layout thrashing */}
+          {/* The island container — layout animates width & height with spring.
+              Always enabled so desktop doesn't lose the elastic growth. */}
           <motion.div
             ref={islandRef}
-            layout={!simplifyAnimations}
+            layout
             transition={{
               layout: {
                 type: "spring",
                 bounce,
-                duration: 0.7,
+                duration: simplifyAnimations ? 0.4 : 0.7,
               },
             }}
             style={{ borderRadius: 28 }}
