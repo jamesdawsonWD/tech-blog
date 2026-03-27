@@ -218,10 +218,11 @@ export default function DynamicIsland() {
           className={`pointer-events-auto w-fit ${isMobile ? "" : "cursor-grab active:cursor-grabbing"}`}
           style={isMobile ? undefined : { touchAction: "none" }}
         >
-          {/* The island container — layout animates width & height with spring */}
+          {/* The island container — layout animates width & height with spring on desktop,
+              snaps instantly on mobile to avoid layout thrashing */}
           <motion.div
             ref={islandRef}
-            layout
+            layout={!isMobile}
             transition={{
               layout: {
                 type: "spring",
@@ -232,28 +233,38 @@ export default function DynamicIsland() {
             style={{ borderRadius: 28 }}
             className="relative overflow-hidden bg-black shadow-[0_8px_32px_rgba(0,0,0,0.3)]"
           >
-            {/* Active view — always visible, handles enter animation */}
+            {/* Active view — full spring entrance on desktop,
+                simple fade on mobile (opacity-only = GPU composited) */}
             <motion.div
               key={view}
-              transition={{
-                type: "spring",
-                bounce,
-              }}
-              initial={{
-                scale: 0.9,
-                opacity: 0,
-                ...(isMobile ? {} : { filter: "blur(5px)" }),
-                originX: 0.5,
-                originY: 0.5,
-              }}
-              animate={{
-                scale: 1,
-                opacity: 1,
-                ...(isMobile ? {} : { filter: "blur(0px)" }),
-                originX: 0.5,
-                originY: 0.5,
-                transition: { delay: 0.05 },
-              }}
+              transition={
+                isMobile
+                  ? { duration: 0.2, ease: [0.23, 1, 0.32, 1] }
+                  : { type: "spring", bounce }
+              }
+              initial={
+                isMobile
+                  ? { opacity: 0 }
+                  : {
+                      scale: 0.9,
+                      opacity: 0,
+                      filter: "blur(5px)",
+                      originX: 0.5,
+                      originY: 0.5,
+                    }
+              }
+              animate={
+                isMobile
+                  ? { opacity: 1 }
+                  : {
+                      scale: 1,
+                      opacity: 1,
+                      filter: "blur(0px)",
+                      originX: 0.5,
+                      originY: 0.5,
+                      transition: { delay: 0.05 },
+                    }
+              }
             >
               {content}
             </motion.div>
