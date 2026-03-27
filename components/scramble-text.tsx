@@ -8,7 +8,7 @@ const TITLES = [
   "Design Engineer",
   "Frontend Engineer",
   "Web Developer",
-  "Landing Page Designer",
+  "Page Designer",
   "Product Engineer",
 ];
 

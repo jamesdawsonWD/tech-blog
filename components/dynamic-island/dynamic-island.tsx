@@ -70,6 +70,15 @@ export default function DynamicIsland() {
   const constraintsRef = useRef<HTMLDivElement | null>(null);
   const islandRef = useRef<HTMLDivElement | null>(null);
   const dragControls = useDragControls();
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 768px)");
+    setIsMobile(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
 
   const track = TRACKS[trackIndex];
 
@@ -193,10 +202,10 @@ export default function DynamicIsland() {
       >
         <div className="pointer-events-none absolute inset-x-0 top-4 flex justify-center">
         <motion.div
-          drag
-          dragControls={dragControls}
+          drag={!isMobile}
+          dragControls={isMobile ? undefined : dragControls}
           dragMomentum={false}
-          dragConstraints={constraintsRef}
+          dragConstraints={isMobile ? undefined : constraintsRef}
           dragElastic={0.075}
           initial={{ y: -80, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -206,8 +215,8 @@ export default function DynamicIsland() {
             duration: 0.8,
             delay: 0.3,
           }}
-          className="pointer-events-auto w-fit cursor-grab active:cursor-grabbing"
-          style={{ touchAction: "none" }}
+          className={`pointer-events-auto w-fit ${isMobile ? "" : "cursor-grab active:cursor-grabbing"}`}
+          style={isMobile ? undefined : { touchAction: "none" }}
         >
           {/* The island container — layout animates width & height with spring */}
           <motion.div
@@ -233,14 +242,14 @@ export default function DynamicIsland() {
               initial={{
                 scale: 0.9,
                 opacity: 0,
-                filter: "blur(5px)",
+                ...(isMobile ? {} : { filter: "blur(5px)" }),
                 originX: 0.5,
                 originY: 0.5,
               }}
               animate={{
                 scale: 1,
                 opacity: 1,
-                filter: "blur(0px)",
+                ...(isMobile ? {} : { filter: "blur(0px)" }),
                 originX: 0.5,
                 originY: 0.5,
                 transition: { delay: 0.05 },

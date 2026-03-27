@@ -7,7 +7,8 @@ export default function ShowcaseCard({ post }: { post: any }) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    if (videoRef.current) {
+    const isDesktop = window.matchMedia("(min-width: 768px)").matches;
+    if (isDesktop && videoRef.current) {
       videoRef.current.play().catch(() => {});
     }
   }, []);
