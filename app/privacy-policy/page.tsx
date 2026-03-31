@@ -1,4 +1,5 @@
 import type { Metadata } from "next/types";
+import ObfuscatedEmail from "@/components/obfuscated-email";
 
 export const metadata: Metadata = {
   title: "Privacy Policy — Penumbra Compliance LTD",
@@ -81,9 +82,7 @@ export default function PrivacyPolicyPage() {
           <p>
             If you have any questions about this privacy policy, you can contact
             us at{" "}
-            <a href="mailto:hello@jamesdawson.dev" className="underline">
-              hello@jamesdawson.dev
-            </a>.
+            <ObfuscatedEmail user="hello" domain="jamesdawson.dev" className="underline" />.
           </p>
         </div>
       </main>
