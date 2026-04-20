@@ -37,7 +37,7 @@ export default function CoverImageWithSkeleton({
         <video
           src={videoSrc}
           poster={src}
-          preload="auto"
+          preload="metadata"
           className="absolute inset-0 z-10 h-full w-full object-cover"
           autoPlay
           loop
