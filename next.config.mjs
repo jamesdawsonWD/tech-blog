@@ -3,9 +3,6 @@ const nextConfig = {
   experimental: {
     viewTransition: true,
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   typescript: {
     ignoreBuildErrors: true,
   },

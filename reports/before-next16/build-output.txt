@@ -1,0 +1,50 @@
+
+> my-v0-project@0.1.0 build
+> next build
+
+   ▲ Next.js 15.2.8
+   - Environments: .env.local
+   - Experiments (use with caution):
+     ✓ viewTransition
+
+   Creating an optimized production build ...
+
+warn - As of Tailwind CSS v3.3, the `@tailwindcss/line-clamp` plugin is now included by default.
+warn - Remove it from the `plugins` array in your configuration to eliminate this warning.
+ ✓ Compiled successfully
+   Skipping validation of types
+   Skipping linting
+   Collecting page data ...
+   Generating static pages (0/19) ...
+   Generating static pages (4/19) 
+   Generating static pages (9/19) 
+   Generating static pages (14/19) 
+ ✓ Generating static pages (19/19)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+┌ ○ /                                     4.9 kB         162 kB
+├ ○ /_not-found                            158 B         111 kB
+├ ƒ /api/email/signup                      158 B         111 kB
+├ ƒ /api/get-ip                            158 B         111 kB
+├ ƒ /api/lookup                            158 B         111 kB
+├ ƒ /api/views                             158 B         111 kB
+├ ● /articles/[slug]                      310 kB         498 kB
+├   ├ /articles/pixel-recaptcha-game
+├   ├ /articles/animated-validation
+├   ├ /articles/moon-beam-toggle
+├   └ [+5 more paths]
+├ ○ /icon.svg                                0 B            0 B
+├ ○ /privacy-policy                        371 B         111 kB
+└ ○ /signup                              3.08 kB         188 kB
++ First Load JS shared by all             111 kB
+  ├ chunks/70c5ba8e-89413ec3c9f85048.js  60.2 kB
+  ├ chunks/9690-828d229409fb6f25.js      46.7 kB
+  └ other shared chunks (total)          3.92 kB
+
+
+○  (Static)   prerendered as static content
+●  (SSG)      prerendered as static HTML (uses generateStaticParams)
+ƒ  (Dynamic)  server-rendered on demand
+
