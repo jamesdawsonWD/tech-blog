@@ -36,9 +36,9 @@ export default function ShowcaseCard({ post }: { post: any }) {
           />
         </div>
       )}
-      <h3 className="mt-3 text-base font-bold text-foreground transition-colors">
+      <h2 className="mt-3 text-base font-bold text-foreground transition-colors">
         {post.title}
-      </h3>
+      </h2>
       <p className="mt-1 text-base text-muted-foreground leading-relaxed line-clamp-2">
         {post.description}
       </p>

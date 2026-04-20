@@ -26,9 +26,9 @@ type BadgeKey =
 type PreviewSide = "left" | "right";
 
 const PHOTO_PRELOADS = [
-  "/images/human-father/1.jpg",
-  "/images/dog-dad/1.jpg",
-  "/images/husband/1.jpg",
+  "/IMG-20250528-WA0009.jpg",
+  "/IMG-20250922-WA0003.jpg",
+  "/PXL_20210611_111843853-ANIMATION.gif",
 ];
 
 function PhotoPreloader() {

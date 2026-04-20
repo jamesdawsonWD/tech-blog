@@ -9,6 +9,13 @@
     "lint": "next lint",
     "generate:cv-pdf": "tsx scripts/generate-cv-pdf.ts"
   },
+  "browserslist": [
+    "Chrome >= 100",
+    "Firefox >= 100",
+    "Safari >= 15",
+    "Edge >= 100",
+    "not dead"
+  ],
   "dependencies": {
     "@codesandbox/sandpack-react": "latest",
     "@codesandbox/sandpack-themes": "latest",

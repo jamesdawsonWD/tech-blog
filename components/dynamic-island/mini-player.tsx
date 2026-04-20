@@ -25,6 +25,7 @@ export function MiniPlayer({
           e.stopPropagation();
           onExpandTo("player");
         }}
+        aria-label="Open music player"
         className="flex flex-1 items-center gap-2 overflow-hidden rounded-lg px-1 py-1"
       >
         <div className="relative shrink-0">
@@ -35,9 +36,18 @@ export function MiniPlayer({
           />
           <div
             role="button"
+            tabIndex={0}
+            aria-label={isPlaying ? "Pause music" : "Play music"}
             onClick={(e) => {
               e.stopPropagation();
               onTogglePlay();
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                e.stopPropagation();
+                onTogglePlay();
+              }
             }}
             className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40"
           >
@@ -66,6 +76,7 @@ export function MiniPlayer({
           e.stopPropagation();
           onExpandTo("timer");
         }}
+        aria-label="Open timer"
         className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-white/50 transition-colors hover:bg-white/10 hover:text-white/80"
       >
         <Clock size={14} />
@@ -78,6 +89,7 @@ export function MiniPlayer({
           e.stopPropagation();
           onExpandTo("cv");
         }}
+        aria-label="Open CV"
         className="shrink-0 rounded-full px-2 py-1 text-[11px] font-medium text-white/50 transition-colors hover:bg-white/10 hover:text-white/80"
       >
         CV
