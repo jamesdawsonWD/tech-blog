@@ -3,26 +3,36 @@ import { evaluate } from "@mdx-js/mdx";
 import * as runtime from "react/jsx-runtime";
 import { getAllPosts, getPostBySlug } from "@/lib/articles";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { formatDate } from "@/lib/utils";
 import { CodeGroup } from "@/components/mdx/code-group";
 import { CodeBlock } from "@/components/mdx/code-block";
-import { CodeSandpack } from "@/components/mdx/code-sandpack";
-import { ConicGradient } from "@/components/raycast/conic-gradient/conic-gradient";
-import { ConicStatic } from "@/components/raycast/conic-static/conic-static";
-import { RaycastButton } from "@/components/raycast/button/raycast-button";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
-import LearningGoals from "@/components/mdx/learning-goals";
-import IpLookup from "@/components/understanding-how-the-web-works/ip-lookup";
-import UrlVisualizer from "@/components/understanding-how-the-web-works/url-visualizer";
-import CurrentVisitorIp from "@/components/understanding-how-the-web-works/current-visitor-ip";
-import CdnImage from "@/components/understanding-how-the-web-works/cdn-image";
-import IncludesDemo from "@/components/array-cheatsheet/includes";
-import PushDemo from "@/components/array-cheatsheet/push";
-import Captcha from "@/components/captcha/captcha";
-import RadialButtonDemo from "@/components/radial-button/radial-button-demo";
 import rehypeSectionize from "@/lib/rehype-sectionize";
 import CoverImageWithSkeleton from "@/components/blog/cover-image-with-skeleton";
+
+const CodeSandpack = dynamic(() =>
+  import("@/components/mdx/code-sandpack").then((m) => m.CodeSandpack),
+);
+const ConicGradient = dynamic(() =>
+  import("@/components/raycast/conic-gradient/conic-gradient").then((m) => m.ConicGradient),
+);
+const ConicStatic = dynamic(() =>
+  import("@/components/raycast/conic-static/conic-static").then((m) => m.ConicStatic),
+);
+const RaycastButton = dynamic(() =>
+  import("@/components/raycast/button/raycast-button").then((m) => m.RaycastButton),
+);
+const LearningGoals = dynamic(() => import("@/components/mdx/learning-goals"));
+const IpLookup = dynamic(() => import("@/components/understanding-how-the-web-works/ip-lookup"));
+const UrlVisualizer = dynamic(() => import("@/components/understanding-how-the-web-works/url-visualizer"));
+const CurrentVisitorIp = dynamic(() => import("@/components/understanding-how-the-web-works/current-visitor-ip"));
+const CdnImage = dynamic(() => import("@/components/understanding-how-the-web-works/cdn-image"));
+const IncludesDemo = dynamic(() => import("@/components/array-cheatsheet/includes"));
+const PushDemo = dynamic(() => import("@/components/array-cheatsheet/push"));
+const Captcha = dynamic(() => import("@/components/captcha/captcha"));
+const RadialButtonDemo = dynamic(() => import("@/components/radial-button/radial-button-demo"));
 
 export async function generateStaticParams() {
   const posts = await getAllPosts();
@@ -92,8 +102,7 @@ export default async function BlogPost({
   });
 
   return (
-    <div className="min-h-screen bg-background">
-      <main className="container max-w-5xl py-6 lg:py-12">
+    <div className="min-h-screen container max-w-5xl py-6 lg:py-12">
         <div className="mb-8 flex justify-between items-center">
           <Link
             href="/"
@@ -180,7 +189,6 @@ export default async function BlogPost({
             }}
           />
         </article>
-      </main>
     </div>
   );
 }

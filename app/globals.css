@@ -346,3 +346,27 @@
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
 }
+
+/* Skip rendering below-fold article sections until near the viewport.
+   contain-intrinsic-size: auto <fallback> lets the browser remember the
+   real size after first render and use the fallback only before first paint,
+   which avoids CLS on scroll-restore. */
+.article-section {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 600px;
+}
+
+/* Wavy text — hover cascade without Framer Motion. */
+@keyframes wavy-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+.wavy-text:hover .wavy-letter {
+  animation: wavy-bounce 0.3s ease-in-out;
+  animation-delay: var(--wavy-delay, 0ms);
+}

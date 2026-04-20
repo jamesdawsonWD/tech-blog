@@ -25,6 +25,7 @@ export default function HeroImage({ src, alt }: HeroImageProps) {
           src={src}
           alt={alt}
           fill
+          sizes="(min-width: 1024px) 1024px, 100vw"
           className="w-full object-cover"
           priority
           onLoad={() => setLoaded(true)}

@@ -1,9 +1,5 @@
 import type React from "react";
 import type { Metadata } from "next/types";
-import { Inter } from "next/font/google";
-import Footer from "@/components/footer";
-
-const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "DevBlog - Programming Insights",
