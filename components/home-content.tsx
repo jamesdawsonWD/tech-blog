@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import ArticleCard from "@/components/article-card";
-import ShowcaseCard from "@/components/showcase-card";
 import PhotoGallery from "@/components/photo-gallery";
 import ScrambleText from "@/components/scramble-text";
 
@@ -234,21 +233,6 @@ export default function HomeContent({ posts }: { posts: any[] }) {
 
   const visibleBioBadge = hoveredBioBadge ?? activeBioBadge;
 
-  const SHOWCASE_ORDER = [
-    "radial-menu-button",
-    "moon-beam-toggle",
-    "pixel-recaptcha-game",
-    "exploring-friction-patterns-can-save-you-millions",
-  ];
-  const showcasePosts = posts
-    .filter((p) => p.showcase)
-    .sort(
-      (a, b) =>
-        (SHOWCASE_ORDER.indexOf(a.slug) === -1 ? 999 : SHOWCASE_ORDER.indexOf(a.slug)) -
-        (SHOWCASE_ORDER.indexOf(b.slug) === -1 ? 999 : SHOWCASE_ORDER.indexOf(b.slug))
-    );
-  const articlePosts = posts.filter((p) => !p.showcase);
-
   useEffect(() => {
     function handlePointerDown(event: PointerEvent) {
       if (!bioRef.current) return;
@@ -351,7 +335,7 @@ export default function HomeContent({ posts }: { posts: any[] }) {
 
             <BlurrableSpan hoveredBadge={visibleBioBadge} badgeKey={null}>
               . For the last <strong>10 years</strong> I have been <strong>Designing and Building</strong> web
-              based software. 
+              based software. I am obsessed with web performance and crafting beautiful interfaces.
             </BlurrableSpan>
           </div>
 
@@ -410,18 +394,9 @@ export default function HomeContent({ posts }: { posts: any[] }) {
           </div>
         </div>
 
-        {/* Showcase */}
-        {showcasePosts.length > 0 && (
-          <section className="mt-16 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {showcasePosts.map((post) => (
-              <ShowcaseCard key={post.slug} post={post} />
-            ))}
-          </section>
-        )}
-
         {/* Articles */}
-        <section className="mt-12 space-y-1">
-          {articlePosts.map((post) => (
+        <section className="mt-16 space-y-1">
+          {posts.map((post) => (
             <ArticleCard key={post.slug} post={post} />
           ))}
         </section>
