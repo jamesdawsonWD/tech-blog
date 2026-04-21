@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
@@ -20,17 +21,41 @@ function postClick(slug: string, href: string) {
   );
 }
 
-export function TabNav({
+export function TabNav(props: { basePath: string; prefetch?: boolean }) {
+  return (
+    <Suspense fallback={<TabNavInner {...props} qs="" />}>
+      <TabNavWithParams {...props} />
+    </Suspense>
+  );
+}
+
+function TabNavWithParams({
   basePath,
-  prefetch = true,
+  prefetch,
 }: {
   basePath: string;
   prefetch?: boolean;
 }) {
-  const pathname = usePathname();
   const searchParams = useSearchParams();
+  return (
+    <TabNavInner
+      basePath={basePath}
+      prefetch={prefetch}
+      qs={searchParams.toString()}
+    />
+  );
+}
 
-  const qs = searchParams.toString();
+function TabNavInner({
+  basePath,
+  prefetch = true,
+  qs,
+}: {
+  basePath: string;
+  prefetch?: boolean;
+  qs: string;
+}) {
+  const pathname = usePathname();
   const suffix = qs ? `?${qs}` : "";
 
   return (
