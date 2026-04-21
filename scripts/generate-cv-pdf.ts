@@ -2,7 +2,7 @@ import puppeteer from "puppeteer";
 import { writeFileSync, mkdirSync, existsSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
-import { EXPERIENCE, SKILL_CATEGORIES } from "../lib/cv-data";
+import { EXPERIENCE, EXPERIENCE_GENERAL, SKILL_CATEGORIES } from "../lib/cv-data";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -10,8 +10,9 @@ const MUTED_FOREGROUND = "hsl(25, 5.3%, 44.7%)";
 const BACKGROUND = "hsl(72, 83%, 98%)";
 const MUTED_BG = "hsla(60, 4.8%, 95.9%, 0.6)";
 
-function buildHtml(title: string = "Senior Design Engineer"): string {
-  const experienceHtml = EXPERIENCE.map(
+function buildHtml(title: string = "Senior Design Engineer", web3: boolean = true): string {
+  const experience = web3 ? EXPERIENCE : EXPERIENCE_GENERAL;
+  const experienceHtml = experience.map(
     (job) => `
       <div class="job">
         <div class="job-header">
@@ -26,8 +27,11 @@ function buildHtml(title: string = "Senior Design Engineer"): string {
     `
   ).join("");
 
+  const excludeSkills = web3 ? [] : ["Solidity"];
   const skillsHtml = SKILL_CATEGORIES.flatMap((cat) =>
-    cat.items.map((skill) => `<span class="skill">${escapeHtml(skill)}</span>`)
+    cat.items
+      .filter((skill) => !excludeSkills.includes(skill))
+      .map((skill) => `<span class="skill">${escapeHtml(skill)}</span>`)
   ).join("");
 
   return `<!DOCTYPE html>
@@ -107,7 +111,7 @@ function buildHtml(title: string = "Senior Design Engineer"): string {
 <body>
   <p class="intro">
     Hi, I am James Dawson. <strong>${escapeHtml(title)}</strong> building beautiful experiences and crafting wonderful UIs for
-    modern web products. Primarily in the Web3.
+    modern web products.${web3 ? " Primarily in the Web3." : ""} Please check out my portfolio: <a href="https://www.jamesdawson.dev" style="color: #141414;">www.jamesdawson.dev</a>
   </p>
 
   <div class="jobs">
@@ -135,26 +139,39 @@ function escapeHtml(text: string): string {
     .replace(/"/g, "&quot;");
 }
 
+const ALL_ROLES = [
+  "Senior Design Engineer",
+  "Senior Frontend Engineer",
+  "Senior Full Stack Engineer",
+];
+
+interface CvVariant {
+  title: string;
+  web3: boolean;
+  prefix: string;
+}
+
 async function main() {
-  const titles = process.argv.length > 2
-    ? process.argv.slice(2)
-    : ["Senior Design Engineer"];
+  const variants: CvVariant[] = ALL_ROLES.flatMap((title) => [
+    { title, web3: true, prefix: "web3-cv" },
+    { title, web3: false, prefix: "cv" },
+  ]);
 
   const browser = await puppeteer.launch();
-  const page = await browser.newPage();
 
-  const outputDir = join(__dirname, "..", "public");
-  if (!existsSync(outputDir)) {
-    mkdirSync(outputDir, { recursive: true });
+  const documentsDir = join(__dirname, "..", "documents");
+  if (!existsSync(documentsDir)) {
+    mkdirSync(documentsDir, { recursive: true });
   }
 
-  for (const title of titles) {
-    const html = buildHtml(title);
+  for (const variant of variants) {
+    const page = await browser.newPage();
+    const html = buildHtml(variant.title, variant.web3);
     await page.setContent(html, { waitUntil: "networkidle0" });
     await page.emulateMediaType("print");
 
-    const slug = title.toLowerCase().replace(/\s+/g, "-");
-    const outputPath = join(outputDir, `cv-${slug}.pdf`);
+    const slug = variant.title.toLowerCase().replace(/\s+/g, "-");
+    const outputPath = join(documentsDir, `${variant.prefix}-${slug}.pdf`);
 
     await page.pdf({
       format: "A4",
@@ -164,6 +181,7 @@ async function main() {
     });
 
     console.log(`PDF written to ${outputPath}`);
+    await page.close();
   }
 
   await browser.close();
