@@ -7,6 +7,7 @@ import dynamic from "next/dynamic";
 import { formatDate } from "@/lib/utils";
 import { CodeGroup } from "@/components/mdx/code-group";
 import { CodeBlock } from "@/components/mdx/code-block";
+import { DictionaryCard } from "@/components/mdx/dictionary-card";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import rehypeSectionize from "@/lib/rehype-sectionize";
@@ -33,6 +34,7 @@ const IncludesDemo = dynamic(() => import("@/components/array-cheatsheet/include
 const PushDemo = dynamic(() => import("@/components/array-cheatsheet/push"));
 const Captcha = dynamic(() => import("@/components/captcha/captcha"));
 const RadialButtonDemo = dynamic(() => import("@/components/radial-button/radial-button-demo"));
+const DemoFrame = dynamic(() => import("@/components/perf-tabs/demo-frame"));
 
 export async function generateStaticParams() {
   const posts = await getAllPosts();
@@ -83,6 +85,7 @@ export default async function BlogPost({
     PushDemo,
     Captcha,
     RadialButtonDemo,
+    DemoFrame,
   };
 
   type ComponentName = keyof typeof AllClientComponents;
@@ -118,6 +121,8 @@ export default async function BlogPost({
                       src={post.author.avatar}
                       alt={post.author?.name || "Author avatar"}
                       fill
+                      priority
+                      fetchPriority="high"
                       className="object-cover"
                       sizes="44px"
                     />
@@ -185,6 +190,7 @@ export default async function BlogPost({
           <MDXContent
             components={{
               ...ClientComponents,
+              DictionaryCard,
               h1: () => null,
             }}
           />
