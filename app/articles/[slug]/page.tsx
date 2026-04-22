@@ -13,6 +13,7 @@ import { ChevronLeft } from "lucide-react";
 import rehypeSectionize from "@/lib/rehype-sectionize";
 import rehypeAssetHash from "@/lib/rehype-asset-hash";
 import CoverImageWithSkeleton from "@/components/blog/cover-image-with-skeleton";
+import avatarImg from "@/public/avatar.jpg";
 
 const CodeSandpack = dynamic(() =>
   import("@/components/mdx/code-sandpack").then((m) => m.CodeSandpack),
@@ -116,19 +117,18 @@ export default async function BlogPost({
             Back
           </Link>
           <div className="flex items-center gap-3">
-                {post.author?.avatar && (
-                  <div className="relative h-11 w-11 overflow-hidden rounded-full border border-border">
-                    <Image
-                      src={post.author.avatar}
-                      alt={post.author?.name || "Author avatar"}
-                      fill
-                      priority
-                      fetchPriority="high"
-                      className="object-cover"
-                      sizes="44px"
-                    />
-                  </div>
-                )}
+                <div className="relative h-11 w-11 overflow-hidden rounded-full border border-border">
+                  <Image
+                    src={avatarImg}
+                    alt={post.author?.name || "Author avatar"}
+                    fill
+                    priority
+                    fetchPriority="high"
+                    unoptimized
+                    className="object-cover"
+                    sizes="44px"
+                  />
+                </div>
 
                 <div className="flex flex-col">
                   {post.author?.name && (
