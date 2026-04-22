@@ -7,6 +7,11 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
+    minimumCacheTTL: 31536000,
+    localPatterns: [
+      { pathname: "/**", search: "" },
+      { pathname: "/**", search: "v=*" },
+    ],
     remotePatterns: [
       {
         protocol: "https",
