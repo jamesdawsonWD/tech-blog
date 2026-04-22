@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import ReactDOM from "react-dom";
 import { evaluate } from "@mdx-js/mdx";
 import * as runtime from "react/jsx-runtime";
 import { getAllPosts, getPostBySlug } from "@/lib/articles";
@@ -70,6 +71,10 @@ export default async function BlogPost({
   const { slug } = await params;
   const post = await getPostBySlug(slug);
   if (!post) notFound();
+
+  if (post.videoImage) {
+    ReactDOM.preload(post.videoImage, { as: "video", fetchPriority: "high" });
+  }
 
   const AllClientComponents = {
     CodeGroup,
