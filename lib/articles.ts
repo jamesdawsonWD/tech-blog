@@ -1,32 +1,9 @@
-import crypto from "crypto"
 import fs from "fs"
 import path from "path"
 import matter from "gray-matter"
+import { withContentHash } from "./asset-hash"
 
 const postsDirectory = path.join(process.cwd(), "articles")
-const publicDirectory = path.join(process.cwd(), "public")
-
-const hashCache = new Map<string, string>()
-
-function withContentHash(publicPath: string | undefined): string | undefined {
-  if (!publicPath || !publicPath.startsWith("/") || publicPath.startsWith("//")) {
-    return publicPath
-  }
-  if (hashCache.has(publicPath)) return hashCache.get(publicPath)
-
-  const diskPath = path.join(publicDirectory, publicPath)
-  if (!fs.existsSync(diskPath)) return publicPath
-
-  const hash = crypto
-    .createHash("sha256")
-    .update(fs.readFileSync(diskPath))
-    .digest("hex")
-    .slice(0, 8)
-  const separator = publicPath.includes("?") ? "&" : "?"
-  const hashed = `${publicPath}${separator}v=${hash}`
-  hashCache.set(publicPath, hashed)
-  return hashed
-}
 
 function hashAuthor(author: Author | undefined): Author | undefined {
   if (!author) return author
@@ -74,7 +51,7 @@ export async function getAllPosts(): Promise<PostMeta[]> {
       date: data.date,
       author: hashAuthor(data.author),
       coverImage: withContentHash(data.coverImage),
-      videoImage: data.videoImage,
+      videoImage: withContentHash(data.videoImage),
       showcase: data.showcase || false,
       tags: data.tags || [],
       components: data.components || []
@@ -99,7 +76,7 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
     content,
     author: hashAuthor(data.author),
     coverImage: withContentHash(data.coverImage),
-    videoImage: data.videoImage,
+    videoImage: withContentHash(data.videoImage),
     showcase: data.showcase || false,
     tags: data.tags || [],
     components: data.components || []

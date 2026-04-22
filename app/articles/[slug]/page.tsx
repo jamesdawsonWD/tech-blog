@@ -11,6 +11,7 @@ import { DictionaryCard } from "@/components/mdx/dictionary-card";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import rehypeSectionize from "@/lib/rehype-sectionize";
+import rehypeAssetHash from "@/lib/rehype-asset-hash";
 import CoverImageWithSkeleton from "@/components/blog/cover-image-with-skeleton";
 
 const CodeSandpack = dynamic(() =>
@@ -101,7 +102,7 @@ export default async function BlogPost({
   const { default: MDXContent } = await evaluate(contentWithTitle, {
     ...runtime,
     baseUrl: import.meta.url,
-    rehypePlugins: [rehypeSectionize],
+    rehypePlugins: [rehypeSectionize, rehypeAssetHash],
   });
 
   return (
