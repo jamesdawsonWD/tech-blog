@@ -7,6 +7,7 @@ type GalleryItem = {
   src: string;
   alt: string;
   className?: string;
+  videoSrc?: string;
 };
 
 const DOG_DAD_PHOTOS: GalleryItem[] = [
@@ -27,7 +28,8 @@ const HUMAN_FATHER_PHOTOS: GalleryItem[] = [
 
 const HUSBAND_PHOTOS: GalleryItem[] = [
   {
-    src: "/PXL_20210611_111843853-ANIMATION.gif",
+    src: "/PXL_20210611_selfie.poster.jpg",
+    videoSrc: "/PXL_20210611_selfie.mp4",
     alt: "Couple taking a selfie in a distorted reflective surface",
   },
 ];
@@ -52,14 +54,28 @@ export default function PhotoGallery({ galleryKey }: { galleryKey: string }) {
     >
       {isSingle ? (
         <div className="relative w-full aspect-[3/4] rounded-sm overflow-hidden shadow-lg">
-          <Image
-            src={photos[0].src}
-            alt={photos[0].alt}
-            fill
-            loading="lazy"
-            sizes="(max-width: 768px) 100vw, 320px"
-            className="object-cover"
-          />
+          {photos[0].videoSrc ? (
+            <video
+              src={photos[0].videoSrc}
+              poster={photos[0].src}
+              aria-label={photos[0].alt}
+              className="absolute inset-0 h-full w-full object-cover"
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="metadata"
+            />
+          ) : (
+            <Image
+              src={photos[0].src}
+              alt={photos[0].alt}
+              fill
+              loading="lazy"
+              sizes="(max-width: 768px) 100vw, 320px"
+              className="object-cover"
+            />
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-2 grid-rows-3 gap-2">

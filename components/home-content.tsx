@@ -24,24 +24,6 @@ type BadgeKey =
 
 type PreviewSide = "left" | "right";
 
-const PHOTO_PRELOADS = [
-  "/IMG-20250528-WA0009.jpg",
-  "/IMG-20250922-WA0003.jpg",
-  "/PXL_20210611_111843853-ANIMATION.gif",
-];
-
-function PhotoPreloader() {
-  useEffect(() => {
-    PHOTO_PRELOADS.forEach((src) => {
-      const img = new window.Image();
-      img.src = src;
-      img.decode?.().catch(() => {});
-    });
-  }, []);
-
-  return null;
-}
-
 function BlurrableSpan({
   children,
   hoveredBadge,
@@ -97,29 +79,44 @@ function DesktopHoverPhotoCard({
   const isLeft = side === "left";
 
   return (
-    <motion.div
-      initial={false}
-      animate={{
-        opacity: show ? 1 : 0,
-        x: show ? 0 : isLeft ? 18 : -18,
-        y: show ? 0 : 8,
-        rotate: show ? (isLeft ? -3 : 3) : isLeft ? -5 : 5,
-        scale: show ? 1 : 0.96,
-      }}
-      transition={{ duration: 0.18, ease: "easeOut" }}
-      style={{ pointerEvents: show ? "auto" : "none" }}
-      aria-hidden={!show}
-      className={[
-        "absolute top-1/2 z-50 hidden md:block",
-        isLeft
-          ? "right-full mr-4 -translate-y-1/2"
-          : "left-full ml-4 -translate-y-1/2",
-      ].join(" ")}
-    >
-      <div className="w-[220px] overflow-hidden rounded-2xl border border-black/10 bg-white shadow-[0_18px_60px_rgba(0,0,0,0.18)]">
-        {children}
-      </div>
-    </motion.div>
+    <AnimatePresence initial={false}>
+      {show && (
+        <motion.div
+          initial={{
+            opacity: 0,
+            x: isLeft ? 18 : -18,
+            y: 8,
+            rotate: isLeft ? -5 : 5,
+            scale: 0.96,
+          }}
+          animate={{
+            opacity: 1,
+            x: 0,
+            y: 0,
+            rotate: isLeft ? -3 : 3,
+            scale: 1,
+          }}
+          exit={{
+            opacity: 0,
+            x: isLeft ? 18 : -18,
+            y: 8,
+            rotate: isLeft ? -5 : 5,
+            scale: 0.96,
+          }}
+          transition={{ duration: 0.18, ease: "easeOut" }}
+          className={[
+            "absolute top-1/2 z-50 hidden md:block",
+            isLeft
+              ? "right-full mr-4 -translate-y-1/2"
+              : "left-full ml-4 -translate-y-1/2",
+          ].join(" ")}
+        >
+          <div className="w-[220px] overflow-hidden rounded-2xl border border-black/10 bg-white shadow-[0_18px_60px_rgba(0,0,0,0.18)]">
+            {children}
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 
@@ -250,8 +247,6 @@ export default function HomeContent({ posts }: { posts: any[] }) {
 
   return (
     <>
-      <PhotoPreloader />
-
       <div className="mx-auto max-w-[692px] px-6 py-20 sm:py-28">
         {/* Bio */}
         <div className="px-4">
