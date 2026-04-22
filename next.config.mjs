@@ -8,10 +8,7 @@ const nextConfig = {
   },
   images: {
     minimumCacheTTL: 31536000,
-    localPatterns: [
-      { pathname: "/**", search: "" },
-      { pathname: "/**", search: "v=*" },
-    ],
+    localPatterns: [{ pathname: "/**" }],
     remotePatterns: [
       {
         protocol: "https",
