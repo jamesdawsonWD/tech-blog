@@ -72,6 +72,9 @@ export default async function BlogPost({
   const post = await getPostBySlug(slug);
   if (!post) notFound();
 
+  if (post.videoPoster) {
+    ReactDOM.preload(post.videoPoster, { as: "image", fetchPriority: "high" });
+  }
   if (post.videoImage) {
     ReactDOM.preload(post.videoImage, { as: "video", fetchPriority: "high" });
   }
@@ -155,6 +158,7 @@ export default async function BlogPost({
           <CoverImageWithSkeleton
             src={post.coverImage}
             videoSrc={post.videoImage}
+            videoPoster={post.videoPoster}
             alt={post.title}
             slug={slug}
           />

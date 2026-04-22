@@ -24,9 +24,16 @@ export interface Post {
   author: Author
   coverImage?: string
   videoImage?: string
+  videoPoster?: string
   showcase?: boolean
   tags: string[]
   components: string[]
+}
+
+function posterFor(videoImage: string | undefined): string | undefined {
+  if (!videoImage || !videoImage.endsWith(".mp4")) return undefined
+  const posterPath = videoImage.replace(/\.mp4$/, ".poster.jpg")
+  return withContentHash(posterPath)
 }
 
 export type PostMeta = Omit<Post, "content">
@@ -52,6 +59,7 @@ export async function getAllPosts(): Promise<PostMeta[]> {
       author: hashAuthor(data.author),
       coverImage: withContentHash(data.coverImage),
       videoImage: withContentHash(data.videoImage),
+      videoPoster: posterFor(data.videoImage),
       showcase: data.showcase || false,
       tags: data.tags || [],
       components: data.components || []
@@ -77,6 +85,7 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
     author: hashAuthor(data.author),
     coverImage: withContentHash(data.coverImage),
     videoImage: withContentHash(data.videoImage),
+    videoPoster: posterFor(data.videoImage),
     showcase: data.showcase || false,
     tags: data.tags || [],
     components: data.components || []
