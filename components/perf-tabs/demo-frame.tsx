@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Loader2, RotateCcw, ExternalLink } from "lucide-react";
 import DeferredMount from "@/components/deferred-mount";
 import { cn } from "@/lib/utils";
+import { runOnIdle } from "@/lib/run-on-idle";
+import { lcpBucket } from "@/app/demos/tabs/_shared/lcp-badge";
 
 type Variant = "baseline" | "loading" | "cached";
 
@@ -14,12 +16,6 @@ const VARIANTS: { id: Variant; label: string }[] = [
 ];
 
 const START_TAB = "overview";
-
-function lcpBucket(ms: number) {
-  if (ms < 200) return "border-emerald-200 bg-emerald-50 text-emerald-700";
-  if (ms < 600) return "border-amber-200 bg-amber-50 text-amber-700";
-  return "border-red-200 bg-red-50 text-red-700";
-}
 
 export default function DemoFrame(props: { defaultVariant?: Variant }) {
   const variant = props.defaultVariant ?? "baseline";
@@ -37,15 +33,8 @@ export default function DemoFrame(props: { defaultVariant?: Variant }) {
       link.href = href;
       document.head.appendChild(link);
     };
-    const w = window as Window & {
-      requestIdleCallback?: (cb: () => void, o?: { timeout?: number }) => number;
-    };
-    if (typeof w.requestIdleCallback === "function") {
-      w.requestIdleCallback(run, { timeout: 3000 });
-      return;
-    }
-    const id = setTimeout(run, 1500);
-    return () => clearTimeout(id);
+    const cancel = runOnIdle(run, { timeout: 3000 });
+    return cancel;
   }, [variant]);
 
   return (
@@ -136,7 +125,7 @@ function DemoFrameInner({
               "inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-mono tabular-nums",
               skeletonMs != null
                 ? lcpBucket(skeletonMs)
-                : "border-zinc-200 bg-white text-muted-foreground"
+                : "border-zinc-800 bg-zinc-900 text-muted-foreground"
             )}
             title="Time from tab click to skeleton painted"
           >
@@ -153,7 +142,7 @@ function DemoFrameInner({
         <div
           className={cn(
             "inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-mono tabular-nums",
-            contentMs != null ? lcpBucket(contentMs) : "border-zinc-200 bg-white text-muted-foreground"
+            contentMs != null ? lcpBucket(contentMs) : "border-zinc-800 bg-zinc-900 text-muted-foreground"
           )}
           title="Time from tab click to content painted"
         >

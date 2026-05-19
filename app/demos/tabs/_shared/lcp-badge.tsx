@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from "react";
 
-function lcpColor(ms: number) {
-  if (ms < 200) return "text-emerald-600 bg-emerald-50 border-emerald-200";
-  if (ms < 600) return "text-amber-600 bg-amber-50 border-amber-200";
-  return "text-red-600 bg-red-50 border-red-200";
+// Shared bucket → className mapping for latency badges, on the dark zinc
+// palette used across the migrated demo. Also consumed by DemoFrame.
+export function lcpBucket(ms: number) {
+  if (ms < 200) return "border-emerald-800 bg-emerald-950 text-emerald-300";
+  if (ms < 600) return "border-amber-800 bg-amber-950 text-amber-300";
+  return "border-red-800 bg-red-950 text-red-300";
 }
 
 export function LcpBadge() {
@@ -55,7 +57,7 @@ export function LcpBadge() {
   return (
     <div
       className={`fixed top-3 right-3 z-50 rounded-md border px-2 py-1 text-xs font-mono shadow-sm tabular-nums ${
-        lcp != null ? lcpColor(lcp) : "border-zinc-800 bg-zinc-900 text-zinc-50"
+        lcp != null ? lcpBucket(lcp) : "border-zinc-800 bg-zinc-900 text-zinc-50"
       }`}
     >
       LCP <span className="font-semibold">{lcp != null ? `${lcp}ms` : "…"}</span>
