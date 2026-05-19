@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import avatarImg from "@/public/avatar.jpg";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -46,9 +47,9 @@ async function subscribeToEmailList({
   return data;
 }
 
-export default function Home() {
-  const [isLoading, setLoading] = useState(false);
+export default function SignupPage() {
   const [success, setSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -58,19 +59,24 @@ export default function Home() {
     },
   });
 
+  const isLoading = form.formState.isSubmitting;
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    setLoading(true);
+    setErrorMessage(null);
 
     try {
-      const result = await subscribeToEmailList({
+      await subscribeToEmailList({
         email: values.email,
         firstName: values.name,
       });
+      setSuccess(true);
     } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Something went wrong. Please try again.";
       console.error("Subscription error:", error);
-      // Optionally: show error message
-    } finally {
-      setLoading(false);
+      setErrorMessage(message);
     }
   };
 
@@ -91,8 +97,8 @@ export default function Home() {
               Hey! James here{" "}
               <span className="inline-block align-middle">
                 <Image
-                  src="https://pbs.twimg.com/profile_images/1916819575359811584/l-_oX6su_400x400.jpg"
-                  alt="James's profile picture"
+                  src={avatarImg}
+                  alt=""
                   width={24}
                   height={24}
                   className="rounded-full"
@@ -105,77 +111,102 @@ export default function Home() {
             </p>
 
             {/* ✅ Shadcn Form starts here */}
-            <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="pt-10 w-full max-w-md flex flex-col space-y-6"
+            {success ? (
+              <div
+                role="status"
+                aria-live="polite"
+                className="pt-10 w-full max-w-md text-center"
               >
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Your name" autoFocus {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <p className="text-xl font-semibold text-foreground">
+                  You&apos;re in! 🎉
+                </p>
+                <p className="mt-2 text-muted-foreground">
+                  Check your inbox to confirm your subscription. See you Monday
+                  morning ☕.
+                </p>
+              </div>
+            ) : (
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="pt-10 w-full max-w-md flex flex-col space-y-6"
+                >
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Your name" autoFocus {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="you@example.com"
-                          type="email"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="you@example.com"
+                            type="email"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <div className="hidden">
-                  <Spinner />
-                </div>
+                  <div className="pt-4 flex flex-col items-center gap-3">
+                    <Button
+                      type="submit"
+                      disabled={isLoading}
+                      className="relative transition-all min-w-96"
+                    >
+                      <AnimatePresence initial={false}>
+                        {isLoading ? (
+                          <motion.div
+                            key="loading"
+                            className="absolute inset-0 flex items-center justify-center"
+                          >
+                            <Spinner />
+                          </motion.div>
+                        ) : (
+                          <motion.span
+                            key="text"
+                            initial={{ y: 20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            exit={{ y: -20, opacity: 0 }}
+                            transition={{ duration: 0.3 }}
+                          >
+                            Join the newsletter
+                          </motion.span>
+                        )}
+                      </AnimatePresence>
+                    </Button>
 
-                <div className="pt-4 flex justify-center">
-                  <Button
-                    disabled={isLoading}
-                    className=" relative transition-all min-w-96"
-                    onClick={() => setLoading(!isLoading)}
-                  >
-                    <AnimatePresence initial={false}>
-                      {isLoading ? (
-                        <motion.div
-                          key="loading"
-                          className="absolute inset-0 flex items-center justify-center"
-                        >
-                          <Spinner />
-                        </motion.div>
-                      ) : (
-                        <motion.span
-                          key="text"
-                          initial={{ y: 20, opacity: 0 }}
-                          animate={{ y: 0, opacity: 1 }}
-                          exit={{ y: -20, opacity: 0 }}
-                          transition={{ duration: 0.3 }}
-                        >
-                          Join the newsletter
-                        </motion.span>
+                    <div role="status" aria-live="polite">
+                      {isLoading && (
+                        <p className="text-sm text-muted-foreground">
+                          Signing you up…
+                        </p>
                       )}
-                    </AnimatePresence>
-                  </Button>{" "}
-                </div>
-              </form>
-            </Form>
+                      {errorMessage && (
+                        <p className="text-sm text-destructive">
+                          {errorMessage}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </form>
+              </Form>
+            )}
             {/* ✅ Shadcn Form ends here */}
           </div>
         </div>
@@ -191,6 +222,6 @@ const Spinner = () => (
     animate={{ y: 0, opacity: 1 }}
     exit={{ y: 20, opacity: 0 }}
     transition={{ duration: 0.3 }}
-    className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"
+    className="h-5 w-5 border-2 border-background border-t-transparent rounded-full animate-spin"
   />
 );
