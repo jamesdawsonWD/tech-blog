@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import ReactDOM from "react-dom";
 import { evaluate } from "@mdx-js/mdx";
 import * as runtime from "react/jsx-runtime";
-import { getAllPosts, getPostBySlug } from "@/lib/articles";
+import { getAllPosts, getPostBySlug, shouldShowDrafts } from "@/lib/articles";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import { formatDate, readingTime } from "@/lib/utils";
@@ -14,7 +14,7 @@ import Link from "next/link";
 import { Clock } from "lucide-react";
 import rehypeSectionize from "@/lib/rehype-sectionize";
 import rehypeAssetHash from "@/lib/rehype-asset-hash";
-import CoverImageWithSkeleton from "@/components/blog/cover-image-with-skeleton";
+import CoverMedia from "@/components/blog/cover-media";
 import { Separator } from "@/components/ui/separator";
 import avatarImg from "@/public/avatar.jpg";
 
@@ -43,13 +43,10 @@ const DemoFrame = dynamic(() => import("@/components/perf-tabs/demo-frame"));
 const CmdKDemo = dynamic(() => import("@/components/cmd-k/cmd-k-demo"));
 const TypeaheadDemo = dynamic(() => import("@/components/typeahead/typeahead-demo"));
 
-// Drafts are committed but hidden: reachable in dev, 404 + unbuilt in prod.
-const showDrafts = process.env.NODE_ENV !== "production";
-
 export async function generateStaticParams() {
   const posts = await getAllPosts();
   return posts
-    .filter((post) => showDrafts || !post.draft)
+    .filter((post) => shouldShowDrafts() || !post.draft)
     .map((post) => ({ slug: post.slug }));
 }
 
@@ -80,7 +77,7 @@ export default async function BlogPost({
   const { slug } = await params;
   const post = await getPostBySlug(slug);
   if (!post) notFound();
-  if (post.draft && !showDrafts) notFound();
+  if (post.draft && !shouldShowDrafts()) notFound();
 
   if (post.coverImage) {
     ReactDOM.preload(post.coverImage, { as: "image", fetchPriority: "high" });
@@ -201,7 +198,7 @@ export default async function BlogPost({
               // Cover breaks out wider than the max-w-3xl reading column,
               // staying centred on the page; text keeps its width.
               <div className="relative left-1/2 -translate-x-1/2 w-[min(100vw-2rem,64rem)]">
-                <CoverImageWithSkeleton
+                <CoverMedia
                   src={post.coverImage}
                   videoSrc={post.videoImage}
                   videoPoster={post.videoPoster}
