@@ -109,28 +109,29 @@
   @apply border-l-4 border-gray-300 dark:border-gray-700 pl-4 italic my-4;
 }
 
-/* Big curly quote marks for the <Quote> / <Definition> primitives. The
-   opening mark hangs in the left margin so the first word stays aligned with
-   the rest of the text. */
+/* Curly quote marks for the <Quote> / <Definition> primitives. Rendered
+   inline (in normal flow, so an ancestor's overflow can never clip them)
+   in a serif face for the elegant swirly glyphs, at full text color. */
 .pull-quote {
   position: relative;
 }
 .pull-quote > p:first-of-type::before {
   content: "\201C";
-  position: absolute;
-  left: -0.62em;
-  top: -0.2em;
-  font-size: 2.4em;
-  line-height: 1;
-  opacity: 0.45;
+  font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  font-size: 1.5em;
+  line-height: 0;
+  vertical-align: -0.32em;
+  margin-right: 0.04em;
+  color: currentColor;
 }
 .pull-quote > p:last-of-type::after {
   content: "\201D";
-  font-size: 2.4em;
+  font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  font-size: 1.5em;
   line-height: 0;
-  vertical-align: -0.5em;
+  vertical-align: -0.32em;
   margin-left: 0.04em;
-  opacity: 0.45;
+  color: currentColor;
 }
 
 .mdx-content code:not(pre code) {
@@ -331,7 +332,11 @@
 /* Replace prose's per-element em-based margins with one fixed rhythm
    so every block sits exactly --article-rhythm apart, like the gap-6
    column on the Vercel article. */
-.section-content :is(p, ul, ol, pre, blockquote, figure, table, hr, img) {
+.section-content
+  :is(p, ul, ol, pre, blockquote, figure, table, hr, img):not(
+    .not-prose,
+    .not-prose *
+  ) {
   margin-top: var(--article-rhythm);
   margin-bottom: var(--article-rhythm);
 }
