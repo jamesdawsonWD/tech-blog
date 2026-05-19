@@ -167,6 +167,10 @@ With a dynamic route, prefetching may only get you as far as the loading boundar
 
 Caching does not replace skeletons or prefetching. It makes them more effective. The skeleton is still there for the slow path, but on the happy path the content is already ready.
 
+You will rarely cache everything, and you should not try. The demo below is the realistic end state. Overview and Activity hold stable data, so they are cached: prefetch warms the full content and the click lands on it instantly. Settings is different — it shows account-specific, personal data that has to be fetched per request, so it stays dynamic. Prefetch can only warm that route as far as its skeleton. Click Settings and you still get an immediate floor, then the real content a moment later.
+
+That mix is the goal, not a compromise: cache what is stable so it is instant, and keep a skeleton where the data has to stay fresh.
+
 <DemoFrame defaultVariant="cached" />
 
 ## The navigation checklist
