@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { runOnIdle } from "@/lib/run-on-idle";
 
 // The bio-badge photo galleries (Human Dad / Dog Dad / Husband-to-be) only
 // mount on hover, so their first request pays a cold Next image-optimizer
@@ -57,13 +58,7 @@ function warm() {
 
 export default function GalleryPreloader() {
   useEffect(() => {
-    const ric = window.requestIdleCallback;
-    if (ric) {
-      const id = ric(warm, { timeout: 3000 });
-      return () => window.cancelIdleCallback?.(id);
-    }
-    const id = window.setTimeout(warm, 2000);
-    return () => window.clearTimeout(id);
+    return runOnIdle(warm, { timeout: 3000 });
   }, []);
 
   return null;
