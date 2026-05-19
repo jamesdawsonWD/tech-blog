@@ -1,12 +1,11 @@
 import { OverviewContent } from "../../_shared/overview-content";
-import { cachedSleep, cacheKey, parseDelay } from "../_cache";
 
-export default async function Page({
-  searchParams,
-}: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
-  const sp = await searchParams;
-  await cachedSleep(cacheKey("overview", sp), parseDelay(sp));
+// The data here is stable, so the whole segment is statically cached.
+// Because it is cacheable, a visible <Link>'s default prefetch warms the
+// fully rendered content — not just the loading.tsx skeleton — so tab
+// navigation lands on real content instantly.
+export const dynamic = "force-static";
+
+export default function Page() {
   return <OverviewContent />;
 }

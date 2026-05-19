@@ -5,9 +5,21 @@ import { Loader2, RotateCcw, ExternalLink } from "lucide-react";
 import DeferredMount from "@/components/deferred-mount";
 import { cn } from "@/lib/utils";
 import { runOnIdle } from "@/lib/run-on-idle";
-import { lcpBucket } from "@/app/demos/tabs/_shared/lcp-badge";
 
 type Variant = "baseline" | "loading" | "cached";
+
+// Latency colour for the toolbar badges. Unlike lcpBucket (tuned for the
+// dark demo chrome inside the iframe), these badges sit on the article page
+// and must follow the site's light/dark theme.
+const BADGE_IDLE = "border-border bg-muted text-muted-foreground opacity-60";
+
+function badgeBucket(ms: number) {
+  if (ms < 200)
+    return "border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300";
+  if (ms < 600)
+    return "border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300";
+  return "border-red-300 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300";
+}
 
 const VARIANTS: { id: Variant; label: string }[] = [
   { id: "baseline", label: "Baseline" },
@@ -135,9 +147,7 @@ function DemoFrameInner({
           <div
             className={cn(
               "inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-mono tabular-nums",
-              skeletonMs != null
-                ? lcpBucket(skeletonMs)
-                : "border-zinc-800 bg-zinc-900 text-muted-foreground"
+              skeletonMs != null ? badgeBucket(skeletonMs) : BADGE_IDLE
             )}
             title="Time from tab click to skeleton painted"
           >
@@ -154,7 +164,7 @@ function DemoFrameInner({
         <div
           className={cn(
             "inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-mono tabular-nums",
-            contentMs != null ? lcpBucket(contentMs) : "border-zinc-800 bg-zinc-900 text-muted-foreground"
+            contentMs != null ? badgeBucket(contentMs) : BADGE_IDLE
           )}
           title="Time from tab click to content painted"
         >

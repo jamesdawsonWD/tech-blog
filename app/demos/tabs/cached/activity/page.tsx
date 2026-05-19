@@ -1,12 +1,8 @@
 import { ActivityContent } from "../../_shared/activity-content";
-import { cachedSleep, cacheKey, parseDelay } from "../_cache";
 
-export default async function Page({
-  searchParams,
-}: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
-  const sp = await searchParams;
-  await cachedSleep(cacheKey("activity", sp), parseDelay(sp));
+// Statically cached segment — see overview/page.tsx for the why.
+export const dynamic = "force-static";
+
+export default function Page() {
   return <ActivityContent />;
 }

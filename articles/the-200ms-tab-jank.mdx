@@ -41,15 +41,21 @@ On the first page load, the browser downloads the application shell: shared layo
 
 That is what makes this kind of jank so noticeable. The user is not waiting for a full website to load; they are clicking between tabs inside an app that is already running. That should feel close to instant.
 
-## Give the navigation a floor with loading.tsx
+## Give the navigation an instant floor: `loading.tsx` + `<Link>`
 
-The first fix was adding a `loading.tsx` file. `loading.tsx` gives a route segment an instant fallback while the new UI is loading. In this case, that fallback was a skeleton that matched the shape of the destination tab.
+The first two fixes work as a pair, so I will treat them as one.
 
-Before this, clicking a tab created a blank void: the old segment disappeared, the new segment was not ready yet, and the user was left staring at nothing. Without a fallback, the app technically responded, but visually it felt like it hesitated. The fix was adding this one `loading.tsx` file.
+The first was adding a `loading.tsx` file. `loading.tsx` gives a route segment an instant fallback while the new UI is loading — here, a skeleton that matched the shape of the destination tab. Before this, clicking a tab created a blank void: the old segment disappeared, the new segment was not ready yet, and the user was left staring at nothing. The app technically responded, but visually it hesitated.
+
+The second was switching the tabs from `router.push()` to `<Link>`. `router.push()` works, but it misses one of the easiest wins in Next.js. `<Link>` gives you proper anchor semantics, client-side navigation, and automatic prefetching: when a link enters the viewport, Next starts warming the destination route before the user clicks. For a tab bar that is exactly what you want — the destinations are already on screen, the user is probably about to click one, so let the framework prepare.
+
+Here is the detail that ties them together, and it trips people up. For a route that fetches data on every request, Next’s default prefetch only warms the route up to its `loading.tsx` boundary — the shared layout and the skeleton — *not the data*. That is deliberate: eagerly fetching dynamic data for every visible link would hammer the server. So `loading.tsx` defines the floor, and `<Link>` prefetch makes the app land on that floor *the instant you click* rather than starting the work afterwards. The skeleton is no longer merely quick — it is immediate. The real content still has to be fetched after it.
+
+One gotcha: judge this in production. Prefetching behaviour is not the same in development.
 
 <DemoFrame defaultVariant="loading" />
 
-The transition now has a floor. The skeleton paints quickly after the click; the real content still arrives later, but the user immediately sees that the app has responded. More importantly, the layout does not jump around when the real content arrives, because the skeleton matches the real content’s shape.
+The transition now has an instant floor. The skeleton appears the moment you click — not merely quickly — and the layout does not jump when the real content arrives, because the skeleton matches its shape.
 
 <CodeGroup
   options={[
@@ -143,33 +149,13 @@ Each tab gets its own `loading.tsx`, nested inside the segment it belongs to:
 
 This matters because `/overview`, `/activity`, and `/settings` may have very different shapes. A chart dashboard, an activity feed, and a settings form should not all share the same generic skeleton — that is how you get layout shift disguised as loading UI. `loading.tsx` nests, so putting one inside each tab segment lets Next render the right fallback for the right destination.
 
-## Use Link so Next can prefetch
-
-The next issue was more surprising. The tabs were navigating with `router.push()`. That works, but it misses one of the easiest wins in Next.js: for normal navigation, use `<Link>`.
-
-`<Link>` gives you proper anchor semantics, client-side navigation, and automatic prefetching. When a link enters the viewport, Next can start warming the destination route before the user clicks. For a tab bar, that is exactly what you want: the possible destinations are already visible, the user is probably going to click one of them, so let the framework prepare.
-
-<CodeBlock name="tab-nav.tsx" lang="tsx">
-{`<nav className="inline-flex gap-1 rounded-lg bg-muted p-1">
-  {tabs.map((tab) => (
-    <Link key={tab.slug} href={\`/analytics/\${tab.slug}\`}>
-      {tab.label}
-    </Link>
-  ))}
-</nav>`}
-</CodeBlock>
-
-That is a big improvement. Now, when the user clicks, Next has a better chance of already having the route’s loading state or route payload ready to go, and the interaction feels better again.
-
-The skeleton still exists, but the destination has a chance to be warmed before the click. Instead of waiting for everything to start after the user interacts, Next can begin preparing the route as soon as the link is visible. This is why `<Link>` matters so much in soft navigation within Next.js: the possible destinations are already on screen, which makes them perfect candidates for prefetching.
-
-One small gotcha: judge this in production, because prefetching behaviour is not the same in development.
-
 But there was still a gap between “skeleton shown” and “real content ready,” so the next question was: can we remove the wait entirely?
 
 ## Stop fetching data that can be cached
 
-The final fix was not about skeletons at all. It was about asking a better question: does this tab actually need fresh data on every click? In this case, the answer was no. The data was stable enough to cache, so each tab segment could be marked as revalidatable. Check out how slick the navigation becomes after a few clicks.
+The final fix was not about skeletons at all. It was about asking a better question: does this tab actually need fresh data on every click? In this case, the answer was no. The data was stable enough to cache, so each tab segment could be made cacheable instead of fetched on every request.
+
+This is where the previous fix pays off twice. While the route was dynamic, `<Link>` prefetch could only warm the skeleton. The moment the segment becomes cacheable, that same prefetch warms the *fully rendered content* instead — so a visible tab is not just floored with a skeleton, it is ready before the click. Caching did not replace prefetching; it is what lets prefetching finish the job. The skeleton still exists, but now you rarely see it.
 
 <DemoFrame defaultVariant="cached" />
 

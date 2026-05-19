@@ -48,7 +48,10 @@ function TabNavWithParams({
 
 function TabNavInner({
   basePath,
-  prefetch = true,
+  // Undefined = Next's default prefetch: a dynamic route is prefetched only
+  // to its loading.tsx boundary (skeleton), a static/cacheable route is
+  // prefetched in full (content). Pass false to opt out entirely.
+  prefetch,
   qs,
 }: {
   basePath: string;

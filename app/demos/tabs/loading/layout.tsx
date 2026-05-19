@@ -6,7 +6,7 @@ export default function LoadingLayout({ children }: { children: React.ReactNode 
     <div className="min-h-screen bg-zinc-950 text-zinc-50 p-4">
       <LcpBadge />
       <div className="mb-4">
-        <TabNav basePath="/demos/tabs/loading" prefetch={false} />
+        <TabNav basePath="/demos/tabs/loading" />
       </div>
       <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-4">{children}</div>
     </div>
