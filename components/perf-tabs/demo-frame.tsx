@@ -117,7 +117,7 @@ function DemoFrameInner({
 
 
   return (
-    <div className="not-prose my-6 space-y-3">
+    <div className="not-prose my-[var(--article-rhythm-lg)] space-y-3">
       <div className="flex flex-wrap items-center gap-2">
         {variant !== "baseline" && (
           <div

@@ -267,6 +267,9 @@
    each heading, and spacing (not borders) to separate sections. */
 :root {
   --article-rhythm: 1.5rem; /* 24px — gap between every block */
+  --article-rhythm-lg: calc(
+    var(--article-rhythm) * 4
+  ); /* 6rem — embedded media/components/quotes/definitions/code */
   --article-section-gap: 3rem; /* 48px — breathing room above an h2 */
 }
 
@@ -341,6 +344,14 @@
   margin-bottom: var(--article-rhythm);
 }
 
+/* Shiki code blocks own no vertical margin — the .code-block wrapper
+   provides the rhythm spacing. Without this the rule above re-adds
+   --article-rhythm top/bottom to the inner <pre class="shiki">. */
+.section-content pre.shiki {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
 /* List items stay tight to each other (Vercel groups them as one unit). */
 .section-content :is(ul, ol) > li {
   margin-top: 0.25rem;
@@ -356,15 +367,8 @@
   border-radius: var(--radius);
   padding: 0.5rem;
   background: hsl(var(--card));
-  margin-top: 3rem;
-  margin-bottom: 1.5rem;
-}
-
-@media (min-width: 768px) {
-  .section-content :is(img, figure):not(.not-prose, .not-prose *) {
-    margin-top: 5rem;
-    margin-bottom: 2.5rem;
-  }
+  margin-top: var(--article-rhythm-lg);
+  margin-bottom: var(--article-rhythm-lg);
 }
 
 .section-content figure:not(.not-prose) img {

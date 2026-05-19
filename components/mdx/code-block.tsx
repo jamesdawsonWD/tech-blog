@@ -23,7 +23,7 @@ export function CodeBlock({
   return (
     <motion.div
       layout
-      className={`relative my-8 border rounded-2xl overflow-auto  border-stone-700 bg-stone-800 shadow-xl shadow-slate-950/20 code-scrollbar ${className}`}
+      className={`relative my-[var(--article-rhythm-lg)] border rounded-2xl overflow-auto  border-stone-700 bg-stone-800 shadow-xl shadow-slate-950/20 code-scrollbar ${className}`}
     >
       
       {name ? (

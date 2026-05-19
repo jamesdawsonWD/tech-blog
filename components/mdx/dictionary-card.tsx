@@ -16,7 +16,7 @@ export function DictionaryCard({
   return (
     <aside
       className={cn(
-        "not-prose my-8 rounded-xl border bg-card px-5 py-4 shadow-sm",
+        "not-prose my-[var(--article-rhythm-lg)] rounded-xl border bg-card px-5 py-4 shadow-sm",
         className
       )}
     >

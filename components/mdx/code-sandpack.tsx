@@ -47,7 +47,7 @@ export function CodeSandpack({
   });
 
   return (
-    <div className="my-8 border rounded-2xl overflow-hidden border-stone-700 bg-stone-800 shadow-xl shadow-slate-950/20 ">
+    <div className="my-[var(--article-rhythm-lg)] border rounded-2xl overflow-hidden border-stone-700 bg-stone-800 shadow-xl shadow-slate-950/20 ">
       <Sandpack
         theme={sandpackTheme}
         template={template}

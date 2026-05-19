@@ -35,10 +35,6 @@ Do you feel **the jank**? Once you see it, you cannot unsee it. Their client-sid
 
 <Definition word="Soft navigation" phonetic="/sɒft nævɪˈɡeɪʃən/" partOfSpeech="noun">
 A navigation where the user appears to move to a new view or route, but the browser does not reload the full document.
-
-Instead of requesting a brand new HTML page, JavaScript intercepts the interaction, updates the URL with the History API or a framework router, fetches any missing data or route payload, and swaps part of the existing page.
-
-This is common in SPAs and frameworks like Next.js App Router, React Router, Vue Router, and Nuxt. The shell stays mounted, but the content changes.
 </Definition>
 
 On the first page load, the browser downloads the application shell: shared layout, CSS, JavaScript, and the current route. After that, internal navigation should be much cheaper. In a framework like Next.js App Router, the browser does not need to reload the whole document — the shared layout stays in place, and only the changed route segment is fetched and rendered.

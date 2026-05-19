@@ -13,7 +13,7 @@ interface LearningGoalsProps {
 
 export default function LearningGoals({ goals }: LearningGoalsProps) {
   return (
-    <div className="border border-border rounded-lg px-6 pb-4 mb-8 bg-muted/20">
+    <div className="border border-border rounded-lg px-6 pb-4 my-[var(--article-rhythm-lg)] bg-muted/20">
       <h2 className="text-lg font-semibold mb-4">What you'll learn</h2>
       <ul className="space-y-4">
         {goals.map((goal, idx) => (

@@ -23,7 +23,7 @@ function PullBlock({
   className?: string;
 }) {
   return (
-    <figure className={cn("not-prose my-12", className)}>
+    <figure className={cn("not-prose my-[var(--article-rhythm-lg)]", className)}>
       {header && <figcaption className="mb-4">{header}</figcaption>}
 
       <blockquote

@@ -20,7 +20,7 @@ export function CodeGroup({ options }: CodeGroupProps) {
   const current = options.find((opt) => opt.name === selected) || options[0];
 
   return (
-    <div className="relative my-8 border rounded-2xl overflow-hidden border-stone-700 bg-stone-800 shadow-xl shadow-slate-950/20">
+    <div className="relative my-[var(--article-rhythm-lg)] border rounded-2xl overflow-hidden border-stone-700 bg-stone-800 shadow-xl shadow-slate-950/20">
       <div className="relative flex border-b border-stone-700">
         {options.map((opt) => (
           <button
