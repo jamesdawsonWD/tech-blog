@@ -5,15 +5,17 @@ import * as runtime from "react/jsx-runtime";
 import { getAllPosts, getPostBySlug } from "@/lib/articles";
 import Image from "next/image";
 import dynamic from "next/dynamic";
-import { formatDate } from "@/lib/utils";
+import { formatDate, readingTime } from "@/lib/utils";
 import { CodeGroup } from "@/components/mdx/code-group";
 import { CodeBlock } from "@/components/mdx/code-block";
 import { DictionaryCard } from "@/components/mdx/dictionary-card";
+import { Quote, Definition } from "@/components/mdx/quote";
 import Link from "next/link";
-import { ChevronLeft } from "lucide-react";
+import { Clock } from "lucide-react";
 import rehypeSectionize from "@/lib/rehype-sectionize";
 import rehypeAssetHash from "@/lib/rehype-asset-hash";
 import CoverImageWithSkeleton from "@/components/blog/cover-image-with-skeleton";
+import { Separator } from "@/components/ui/separator";
 import avatarImg from "@/public/avatar.jpg";
 
 const CodeSandpack = dynamic(() =>
@@ -80,6 +82,9 @@ export default async function BlogPost({
   if (!post) notFound();
   if (post.draft && !showDrafts) notFound();
 
+  if (post.coverImage) {
+    ReactDOM.preload(post.coverImage, { as: "image", fetchPriority: "high" });
+  }
   if (post.videoPoster) {
     ReactDOM.preload(post.videoPoster, { as: "image", fetchPriority: "high" });
   }
@@ -126,104 +131,110 @@ export default async function BlogPost({
 
   return (
     <div className="min-h-screen container max-w-3xl py-6 lg:py-12">
-        <div className="mb-8 flex justify-between items-center">
-          <Link
-            href="/"
-            className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <ChevronLeft className="size-4" />
-            Back
+        {/* Breadcrumb */}
+        <nav
+          aria-label="Breadcrumb"
+          className="mb-10 flex items-center justify-center gap-2 text-sm text-muted-foreground"
+        >
+          <Link href="/" className="transition-colors hover:text-foreground">
+            Articles
           </Link>
-          <div className="flex items-center gap-3">
-                <div className="relative h-11 w-11 overflow-hidden rounded-full border border-border">
-                  <Image
-                    src={avatarImg}
-                    alt={post.author?.name || "Author avatar"}
-                    fill
-                    priority
-                    fetchPriority="high"
-                    unoptimized
-                    className="object-cover"
-                    sizes="44px"
-                  />
-                </div>
+          <span aria-hidden className="text-muted-foreground/50">
+            /
+          </span>
+          <span className="text-foreground/80">{post.title}</span>
+        </nav>
 
-                <div className="flex flex-col">
-                  {post.author?.name && (
-                    <span className="text-sm font-medium text-foreground">
-                      {post.author.name}
-                    </span>
-                  )}
-                  <time
-                    dateTime={post.date}
-                    className="text-sm text-muted-foreground"
-                  >
-                    {formatDate(post.date)}
-                  </time>
-                </div>
-              </div>
+        {/* Title */}
+        <header className="flex flex-col items-center text-center">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-5xl">
+            {post.title}
+          </h1>
+          {post.description && (
+            <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
+              {post.description}
+            </p>
+          )}
+
+          <div className="mt-6 flex items-center gap-2">
+            <span className="relative h-6 w-6 overflow-hidden rounded-full border border-border">
+              <Image
+                src={avatarImg}
+                alt={post.author?.name || "Author avatar"}
+                fill
+                priority
+                fetchPriority="high"
+                unoptimized
+                className="object-cover"
+                sizes="24px"
+              />
+            </span>
+            {post.author?.name && (
+              <span className="text-sm font-medium text-foreground">
+                {post.author.name}
+              </span>
+            )}
+          </div>
+        </header>
+
+        {/* Meta */}
+        <div className="mt-10 flex items-center justify-between py-3 text-sm text-muted-foreground">
+          <span className="inline-flex items-center gap-1.5">
+            <Clock className="size-4" />
+            {readingTime(post.content)} min read
+          </span>
+          <time dateTime={post.date}>{formatDate(post.date)}</time>
         </div>
+        <Separator className="mb-12" />
 
+        {/* Cover */}
         {post.coverComponent && AllClientComponents[post.coverComponent as ComponentName]
           ? (() => {
               const CoverComponent = AllClientComponents[post.coverComponent as ComponentName];
               return (
-                <div className="mt-4 mb-8">
+                <div className="mb-12">
                   <CoverComponent />
                 </div>
               );
             })()
           : (post.coverImage || post.videoImage) && (
-              <CoverImageWithSkeleton
-                src={post.coverImage}
-                videoSrc={post.videoImage}
-                videoPoster={post.videoPoster}
-                alt={post.title}
-                slug={slug}
-              />
+              // Cover breaks out wider than the max-w-3xl reading column,
+              // staying centred on the page; text keeps its width.
+              <div className="relative left-1/2 -translate-x-1/2 w-[min(100vw-2rem,64rem)]">
+                <CoverImageWithSkeleton
+                  src={post.coverImage}
+                  videoSrc={post.videoImage}
+                  videoPoster={post.videoPoster}
+                  alt={post.title}
+                  slug={slug}
+                />
+              </div>
             )}
-
-        <header className="mt-16 mb-8">
-          <div className="space-y-4 w-full flex flex-col items-center">
-            <div className="space-y-2 w-full flex flex-col items-center">
-              <h1 className="text-3xl text-center font-semibold tracking-tight text-foreground sm:text-4xl">
-                {post.title}
-              </h1>
-              {post.description && (
-                <p className="max-w-2xl text-base text-center leading-7 text-muted-foreground sm:text-lg">
-                  {post.description}
-                </p>
-              )}
-            </div>
-
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-
-
-              {post.tags?.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {post.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="inline-flex items-center capitalize gap-1.5 px-2.5 py-1 rounded-md bg-muted/60 text-sm text-foreground"
-                      >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </header>
 
         <article className="prose prose-neutral dark:prose-invert max-w-none">
           <MDXContent
             components={{
               ...ClientComponents,
               DictionaryCard,
+              Quote,
+              Definition,
               h1: () => null,
             }}
           />
         </article>
+
+        {post.tags?.length > 0 && (
+          <div className="mt-12 flex flex-wrap gap-2 border-t border-border pt-8">
+            {post.tags.map((tag) => (
+              <span
+                key={tag}
+                className="inline-flex items-center gap-1.5 rounded-md bg-muted/60 px-2.5 py-1 text-sm capitalize text-muted-foreground"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
     </div>
   );
 }

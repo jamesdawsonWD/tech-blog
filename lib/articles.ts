@@ -38,6 +38,19 @@ function posterFor(videoImage: string | undefined): string | undefined {
   return withContentHash(posterPath)
 }
 
+// Prefer the prebuilt static .cover.jpg variant (no cold optimizer) when it
+// exists on disk; fall back to the raw source otherwise.
+function coverFor(coverImage: string | undefined): string | undefined {
+  if (!coverImage || !coverImage.startsWith("/")) {
+    return withContentHash(coverImage)
+  }
+  const variant = `${coverImage.replace(/\.[^.]+$/, "")}.cover.jpg`
+  if (fs.existsSync(path.join(process.cwd(), "public", variant))) {
+    return withContentHash(variant)
+  }
+  return withContentHash(coverImage)
+}
+
 export type PostMeta = Omit<Post, "content">
 
 export async function getAllPosts(): Promise<PostMeta[]> {
@@ -59,7 +72,7 @@ export async function getAllPosts(): Promise<PostMeta[]> {
       description: data.description,
       date: data.date,
       author: hashAuthor(data.author),
-      coverImage: withContentHash(data.coverImage),
+      coverImage: coverFor(data.coverImage),
       videoImage: withContentHash(data.videoImage),
       videoPoster: posterFor(data.videoImage),
       coverComponent: data.coverComponent,
@@ -87,7 +100,7 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
     date: data.date,
     content,
     author: hashAuthor(data.author),
-    coverImage: withContentHash(data.coverImage),
+    coverImage: coverFor(data.coverImage),
     videoImage: withContentHash(data.videoImage),
     videoPoster: posterFor(data.videoImage),
     coverComponent: data.coverComponent,

@@ -95,6 +95,30 @@
   @apply border-l-4 border-gray-300 dark:border-gray-700 pl-4 italic my-4;
 }
 
+/* Big curly quote marks for the <Quote> / <Definition> primitives. The
+   opening mark hangs in the left margin so the first word stays aligned with
+   the rest of the text. */
+.pull-quote {
+  position: relative;
+}
+.pull-quote > p:first-of-type::before {
+  content: "\201C";
+  position: absolute;
+  left: -0.62em;
+  top: -0.2em;
+  font-size: 2.4em;
+  line-height: 1;
+  opacity: 0.45;
+}
+.pull-quote > p:last-of-type::after {
+  content: "\201D";
+  font-size: 2.4em;
+  line-height: 0;
+  vertical-align: -0.5em;
+  margin-left: 0.04em;
+  opacity: 0.45;
+}
+
 .mdx-content code:not(pre code) {
   @apply bg-gray-100 dark:bg-gray-800 rounded px-1 py-0.5;
 }
@@ -120,7 +144,7 @@
 }
 
 .prose code {
-  @apply text-sm px-2 py-1 bg-stone-700 text-stone-50 rounded-lg;
+  @apply font-mono font-normal text-[0.9em] px-1.5 py-0.5 rounded-md bg-[#1E1E1E] text-[#6BAF5F];
 }
 
 .prose a {
@@ -135,6 +159,7 @@
 .prose pre code {
   @apply p-0 bg-transparent text-inherit;
 }
+
 
 .code-scrollbar {
   scrollbar-color: #78716c transparent; /* Firefox: thumb + transparent track */

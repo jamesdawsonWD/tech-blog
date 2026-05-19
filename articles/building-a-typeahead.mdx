@@ -11,13 +11,7 @@ coverComponent: "TypeaheadDemo"
 draft: true
 ---
 
-Most typeaheads are almost good.
-
-Then they flicker. Or feel laggy. Or spam the screen reader. Or let an old request overwrite the newest result.
-
-None of these problems are hard to fix. They’re small defaults that need to work together.
-
-Here’s the version I’d actually ship.
+Most typeaheads are almost good. Then they flicker, or feel laggy, or spam the screen reader, or let an old request overwrite the newest result. None of these problems are hard to fix — they’re small defaults that need to work together. Here’s the version I’d actually ship.
 
 Try `iphone`, `laptop`, or `gaming`. Type fast and watch the debounce. Type the same query twice and watch the cache hit. Type nonsense and you’ll see the empty state. The API usually responds in 50–250ms, with an occasional slower 500–800ms request.
 
@@ -32,15 +26,11 @@ A good typeahead is mostly about managing the waiting window.
 | Loading UI delay | 150ms | Avoids flashing a skeleton for fast responses |
 | Cache TTL | 60s | Keeps repeat searches instant without holding stale data for long |
 
-Lower the debounce too far and you send noisy requests. Push it past 300ms and fast typers start to feel the delay.
-
-The skeleton delay matters just as much. A 250ms debounce plus a 50ms fetch is fine without loading UI. A 250ms debounce plus an 800ms fetch needs a skeleton.
+Lower the debounce too far and you send noisy requests; push it past 300ms and fast typers start to feel the delay. The skeleton delay matters just as much: a 250ms debounce plus a 50ms fetch is fine without loading UI, but a 250ms debounce plus an 800ms fetch needs a skeleton.
 
 ## The cache
 
-Use a module-level `Map`, keyed by normalised query, with TTL and LRU eviction.
-
-It survives component remounts, which is useful when the popup opens and closes, but resets on page reload.
+Use a module-level `Map`, keyed by normalised query, with TTL and LRU eviction. It survives component remounts — useful when the popup opens and closes — but resets on page reload.
 
 <CodeBlock name="cache.ts" lang="ts">
 {`type CacheEntry = { results: SearchResult[]; expiresAt: number };
@@ -64,9 +54,7 @@ function readCache(q: string) {
 }`}
 </CodeBlock>
 
-The useful trick is reading the cache synchronously against the live query, not just the debounced query.
-
-If the answer is already in memory, the user shouldn’t wait for the debounce.
+The useful trick is reading the cache synchronously against the live query, not just the debounced query. If the answer is already in memory, the user shouldn’t wait for the debounce.
 
 <CodeBlock name="typeahead-demo.tsx" lang="tsx">
 {`const cached = useMemo(() => {
@@ -81,9 +69,7 @@ That’s what makes re-typing a previous query feel instant.
 
 ## Abort old requests
 
-When the user keeps typing, the previous request is stale.
-
-Without cancellation, a slow old response can land after a newer one and overwrite the correct result.
+When the user keeps typing, the previous request is stale. Without cancellation, a slow old response can land after a newer one and overwrite the correct result.
 
 <CodeBlock name="use-product-search.ts" lang="ts">
 {`useEffect(() => {
@@ -110,15 +96,11 @@ Without cancellation, a slow old response can land after a newer one and overwri
 }, [query]);`}
 </CodeBlock>
 
-There are two checks here.
-
-The `.then()` guard handles the case where the request resolves just as the effect cleans up. The `.catch()` guard treats cancellation as expected behaviour, not a real error.
+There are two checks here. The `.then()` guard handles the case where the request resolves just as the effect cleans up, and the `.catch()` guard treats cancellation as expected behaviour, not a real error.
 
 ## Delay the skeleton
 
-Showing a skeleton for every fast response makes the UI feel worse. It creates a flash with no useful information.
-
-So delay it.
+Showing a skeleton for every fast response makes the UI feel worse: it creates a flash with no useful information. So delay it.
 
 <CodeBlock name="use-delayed-flag.ts" lang="ts">
 {`/**
@@ -146,9 +128,7 @@ This pattern is useful everywhere. Wait 100–150ms before showing loading UI an
 
 ## Virtualise, but keep it small
 
-A 500-item list with 64px rows means 32,000px of rendered content.
-
-Most browsers can handle that, but lower-end devices may still jank while scrolling. For a fixed-height typeahead list, a small virtual list is enough.
+A 500-item list with 64px rows means 32,000px of rendered content. Most browsers can handle that, but lower-end devices may still jank while scrolling. For a fixed-height typeahead list, a small virtual list is enough.
 
 <CodeBlock name="virtual-list.ts" lang="ts">
 {`function useSimpleVirtualList({ itemCount, itemHeight, containerHeight, overscan = 5 }) {
@@ -172,17 +152,13 @@ Most browsers can handle that, but lower-end devices may still jank while scroll
 }`}
 </CodeBlock>
 
-The important part is the `requestAnimationFrame`.
-
-Scroll events can fire faster than React can render. Coalescing updates to one per frame keeps the rendered window closer to the scrollbar position.
+The important part is the `requestAnimationFrame`. Scroll events can fire faster than React can render, so coalescing updates to one per frame keeps the rendered window closer to the scrollbar position.
 
 For a serious production list, I’d use `@tanstack/react-virtual`. For a fixed-height typeahead, a tiny hook is usually enough.
 
 ## Accessibility: announce once
 
-Screen readers should hear the final result, not every intermediate state.
-
-Use one visually-hidden live region. Keep it empty while typing or loading. Populate it when the result has settled.
+Screen readers should hear the final result, not every intermediate state. Use one visually-hidden live region: keep it empty while typing or loading, and populate it when the result has settled.
 
 <CodeBlock name="typeahead-demo.tsx" lang="tsx">
 {`let liveAnnouncement = "";
@@ -205,9 +181,7 @@ return (
 );`}
 </CodeBlock>
 
-`role="status"` with `aria-live="polite"` lets the screen reader announce results without interrupting the user.
-
-The key is restraint: don’t announce loading on every keystroke.
+`role="status"` with `aria-live="polite"` lets the screen reader announce results without interrupting the user. The key is restraint: don’t announce loading on every keystroke.
 
 ## What I’d defend in an interview
 
@@ -218,6 +192,4 @@ The key is restraint: don’t announce loading on every keystroke.
 - **AbortController hygiene** because stale requests should never win.
 - **One settled live-region announcement** because accessibility should be calm, not noisy.
 
-The code is small.
-
-The hard part is knowing which tiny decisions make the whole interaction feel fast, stable, and respectful.
+The code is small. The hard part is knowing which tiny decisions make the whole interaction feel fast, stable, and respectful.

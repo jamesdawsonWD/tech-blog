@@ -13,85 +13,47 @@ components: ["DemoFrame", "CodeGroup", "CodeBlock"]
 
 ## The context
 
-I recently reviewed a well-funded AI startup’s app.
+I recently reviewed a well-funded AI startup’s app. Beautiful design, nice animations, interesting product. But one thing kept sticking out to my trained eye: the jank.
 
-Beautiful design. Nice animations. Interesting product.
-
-But one thing kept sticking out to my trained eye:
-
-The jank.
-
-<DictionaryCard word="Jank" phonetic="/dʒaŋk/" partOfSpeech="noun">
+<Definition word="Jank" phonetic="/dʒaŋk/" partOfSpeech="noun">
 Refers to sluggishness in a user interface, usually caused by executing long tasks on the [main thread](https://developer.mozilla.org/en-US/docs/Glossary/Main_thread), blocking rendering, or expending too much processor power on background processes.
-</DictionaryCard>
+</Definition>
 
-There are many reasons a UI starts to feel janky: cumbersome functions that should run on the server, heavy DOM structures, unnecessary rerenders, slow data fetching, oversized JavaScript, or background work fighting for the main thread.
+There are many reasons a UI starts to feel janky: cumbersome functions that should run on the server, heavy DOM structures, unnecessary rerenders, slow data fetching, oversized JavaScript, or background work fighting for the main thread. But this one was much more common.
 
-But this one was much more common.
+The app had a tabbed navigation section that looked simple but did not feel instant. Every click had a tiny delay — not enough to break the app, just enough to make the interface feel heavier than it should. That is the kind of performance issue I love finding, because it sits right at the intersection of engineering and feel.
 
-The app had a tabbed navigation section that looked simple, but did not feel instant. Every click had a tiny delay. Not enough to break the app. Just enough to make the interface feel heavier than it should.
-
-That is the kind of performance issue I love finding, because it sits right at the intersection of engineering and feel.
-
-The app was not broken.
-
-It just did not feel as good as it looked.
+The app was not broken. It just did not feel as good as it looked.
 
 ## The audit
 
-The first thing I noticed was a tabbed navigation section that was not loading instantly.
-
-There was a visibly noticeable delay on something that should have felt nearly instant. It was a standard Shadcn-style tab component, rendering a new view for each tab. I recreated it here.
+The first thing I noticed was a tabbed navigation section that was not loading instantly. There was a visibly noticeable delay on something that should have felt nearly instant. It was a standard Shadcn-style tab component, rendering a new view for each tab. I recreated it here.
 
 <DemoFrame defaultVariant="baseline" />
 
-Do you feel **the jank**?
+Do you feel **the jank**? Once you see it, you cannot unsee it. Their client-side navigations were slow and janky, and we needed to fix them.
 
-Once you see it, you cannot unsee it.
-
-Their client-side navigations were slow and janky, and we needed to fix them.
-
-<DictionaryCard word="Soft navigation" phonetic="/sɒft nævɪˈɡeɪʃən/" partOfSpeech="noun">
+<Definition word="Soft navigation" phonetic="/sɒft nævɪˈɡeɪʃən/" partOfSpeech="noun">
 A navigation where the user appears to move to a new view or route, but the browser does not reload the full document.
 
 Instead of requesting a brand new HTML page, JavaScript intercepts the interaction, updates the URL with the History API or a framework router, fetches any missing data or route payload, and swaps part of the existing page.
 
 This is common in SPAs and frameworks like Next.js App Router, React Router, Vue Router, and Nuxt. The shell stays mounted, but the content changes.
-</DictionaryCard>
+</Definition>
 
-On the first page load, the browser downloads the application shell: shared layout, CSS, JavaScript, and the current route.
+On the first page load, the browser downloads the application shell: shared layout, CSS, JavaScript, and the current route. After that, internal navigation should be much cheaper. In a framework like Next.js App Router, the browser does not need to reload the whole document — the shared layout stays in place, and only the changed route segment is fetched and rendered.
 
-After that, internal navigation should be much cheaper.
-
-In a framework like Next.js App Router, the browser does not need to reload the whole document. The shared layout stays in place, and only the changed route segment is fetched and rendered.
-
-That is what makes this kind of jank so noticeable.
-
-The user is not waiting for a full website to load. They are clicking between tabs inside an app that is already running.
-
-That should feel close to instant.
+That is what makes this kind of jank so noticeable. The user is not waiting for a full website to load; they are clicking between tabs inside an app that is already running. That should feel close to instant.
 
 ## Give the navigation a floor with loading.tsx
 
-The first fix was adding a `loading.tsx` file.
+The first fix was adding a `loading.tsx` file. `loading.tsx` gives a route segment an instant fallback while the new UI is loading. In this case, that fallback was a skeleton that matched the shape of the destination tab.
 
-`loading.tsx` gives a route segment an instant fallback while the new UI is loading. In this case, that fallback was a skeleton that matched the shape of the destination tab.
-
-Before this, clicking a tab created a blank void.
-
-The old segment disappeared, the new segment was not ready yet, and the user was left staring at nothing.
-
-Without a fallback, the app technically responded, but visually it felt like it hesitated.
-
-The fix was adding this one `loading.tsx` file.
+Before this, clicking a tab created a blank void: the old segment disappeared, the new segment was not ready yet, and the user was left staring at nothing. Without a fallback, the app technically responded, but visually it felt like it hesitated. The fix was adding this one `loading.tsx` file.
 
 <DemoFrame defaultVariant="loading" />
 
-The transition now has a floor.
-
-The skeleton paints quickly after the click. The real content still arrives later, but the user immediately sees that the app has responded. More importantly, the layout does not jump around when the real content arrives.
-
-The skeleton matches the real content’s shape.
+The transition now has a floor. The skeleton paints quickly after the click; the real content still arrives later, but the user immediately sees that the app has responded. More importantly, the layout does not jump around when the real content arrives, because the skeleton matches the real content’s shape.
 
 <CodeGroup
   options={[
@@ -183,28 +145,13 @@ Each tab gets its own `loading.tsx`, nested inside the segment it belongs to:
     └── loading.tsx`}
 </CodeBlock>
 
-This matters because `/overview`, `/activity`, and `/settings` may have very different shapes.
-
-A chart dashboard, an activity feed, and a settings form should not all share the same generic skeleton. That is how you get layout shift disguised as loading UI.
-
-`loading.tsx` nests, so putting one inside each tab segment lets Next render the right fallback for the right destination.
-
+This matters because `/overview`, `/activity`, and `/settings` may have very different shapes. A chart dashboard, an activity feed, and a settings form should not all share the same generic skeleton — that is how you get layout shift disguised as loading UI. `loading.tsx` nests, so putting one inside each tab segment lets Next render the right fallback for the right destination.
 
 ## Use Link so Next can prefetch
 
-The next issue was more surprising.
+The next issue was more surprising. The tabs were navigating with `router.push()`. That works, but it misses one of the easiest wins in Next.js: for normal navigation, use `<Link>`.
 
-The tabs were navigating with `router.push()`.
-
-That works, but it misses one of the easiest wins in Next.js.
-
-For normal navigation, use `<Link>`.
-
-`<Link>` gives you proper anchor semantics, client-side navigation, and automatic prefetching. When a link enters the viewport, Next can start warming the destination route before the user clicks.
-
-For a tab bar, that is exactly what you want.
-
-The possible destinations are already visible. The user is probably going to click one of them. Let the framework prepare.
+`<Link>` gives you proper anchor semantics, client-side navigation, and automatic prefetching. When a link enters the viewport, Next can start warming the destination route before the user clicks. For a tab bar, that is exactly what you want: the possible destinations are already visible, the user is probably going to click one of them, so let the framework prepare.
 
 <CodeBlock name="tab-nav.tsx" lang="tsx">
 {`<nav className="inline-flex gap-1 rounded-lg bg-muted p-1">
@@ -216,35 +163,17 @@ The possible destinations are already visible. The user is probably going to cli
 </nav>`}
 </CodeBlock>
 
-That is a big improvement.
+That is a big improvement. Now, when the user clicks, Next has a better chance of already having the route’s loading state or route payload ready to go, and the interaction feels better again.
 
-Now, when the user clicks, Next has a better chance of already having the route’s loading state or route payload ready to go.
+The skeleton still exists, but the destination has a chance to be warmed before the click. Instead of waiting for everything to start after the user interacts, Next can begin preparing the route as soon as the link is visible. This is why `<Link>` matters so much in soft navigation within Next.js: the possible destinations are already on screen, which makes them perfect candidates for prefetching.
 
-Now the interaction feels better again.
+One small gotcha: judge this in production, because prefetching behaviour is not the same in development.
 
-The skeleton still exists, but the destination has a chance to be warmed before the click. Instead of waiting for everything to start after the user interacts, Next can begin preparing the route as soon as the link is visible.
-
-This is why `<Link>` matters so much in soft navigation within Next.js. The possible destinations are already on screen, which means they are perfect candidates for prefetching.
-
-One small gotcha: judge this in production. Prefetching behaviour is not the same in development.
-
-But there was still a gap between “skeleton shown” and “real content ready.”
-
-So the next question was:
-
-Can we remove the wait entirely?
+But there was still a gap between “skeleton shown” and “real content ready,” so the next question was: can we remove the wait entirely?
 
 ## Stop fetching data that can be cached
 
-The final fix was not about skeletons at all.
-
-It was about asking a better question:
-
-Does this tab actually need fresh data on every click?
-
-In this case, the answer was no. The data was stable enough to cache, so each tab segment could be marked as revalidatable:
-
-Check out how slick the navigatino becomes after a few clicks.
+The final fix was not about skeletons at all. It was about asking a better question: does this tab actually need fresh data on every click? In this case, the answer was no. The data was stable enough to cache, so each tab segment could be marked as revalidatable. Check out how slick the navigation becomes after a few clicks.
 
 <DemoFrame defaultVariant="cached" />
 
@@ -254,51 +183,27 @@ When a navigation feels slower than it should, I now run through this checklist:
 
 ### 1. Is this really a full page load?
 
-If the browser is loading a new document, you are dealing with a hard navigation.
-
-If the shell stays mounted and only part of the view changes, you are dealing with a soft navigation.
-
-That distinction matters because users expect soft navigations to feel much faster.
+If the browser is loading a new document, you are dealing with a hard navigation. If the shell stays mounted and only part of the view changes, you are dealing with a soft navigation. That distinction matters because users expect soft navigations to feel much faster.
 
 ### 2. Are we using `<Link>` for visible navigation?
 
-If the user can see the destination on screen, it should probably be a `<Link>`.
-
-That gives Next a chance to prefetch the route before the user clicks.
-
-Use `router.push()` when the navigation is genuinely programmatic, like after a form submit, auth redirect, or multi-step action.
+If the user can see the destination on screen, it should probably be a `<Link>`, which gives Next a chance to prefetch the route before the user clicks. Use `router.push()` when the navigation is genuinely programmatic, like after a form submit, auth redirect, or multi-step action.
 
 ### 3. Does the destination have a useful `loading.tsx`?
 
-A missing loading state creates a visual gap.
-
-A good `loading.tsx` gives the navigation a floor. The user immediately sees that the app has responded, even if the real content is still loading.
+A missing loading state creates a visual gap. A good `loading.tsx` gives the navigation a floor: the user immediately sees that the app has responded, even if the real content is still loading.
 
 ### 4. Does the skeleton match the final layout?
 
-A skeleton should reserve the same space as the real UI.
-
-If the skeleton is too generic, too small, or shaped differently from the final content, it can create a second problem: layout shift.
-
-The goal is not just to show grey boxes.
-
-The goal is to make the transition feel stable.
+A skeleton should reserve the same space as the real UI. If the skeleton is too generic, too small, or shaped differently from the final content, it can create a second problem: layout shift. The goal is not just to show grey boxes — it is to make the transition feel stable.
 
 ### 5. Are we fetching data that could be cached?
 
-This is usually the biggest win.
-
-If the data is not user-specific, request-specific, or genuinely fresh, it probably should not be fetched from scratch on every tab click.
-
-Skeletons make waiting feel better.
-
-Caching removes the wait.
+This is usually the biggest win. If the data is not user-specific, request-specific, or genuinely fresh, it probably should not be fetched from scratch on every tab click. Skeletons make waiting feel better; caching removes the wait.
 
 ### 6. Is expensive work happening after the click?
 
-A click should not trigger a pile of avoidable work.
-
-Look for:
+A click should not trigger a pile of avoidable work. Look for:
 
 - route fetches starting only after interaction
 - client-side data fetching that could happen on the server
@@ -308,39 +213,14 @@ Look for:
 - unnecessary rerenders
 - heavy components mounting all at once
 
-The question is simple:
-
-What has to happen after the click, and what could have happened before?
+The question is simple: what has to happen after the click, and what could have happened before?
 
 ### 7. Does it feel instant in production?
 
-Do not judge this in development.
-
-Next.js prefetching, caching, streaming, and bundling behaviour can be very different in production. Build the app, test the real route, throttle the network if needed, and record the interaction.
-
-The user does not care that the framework is doing something clever.
-
-They care that the app feels immediate.
+Do not judge this in development. Next.js prefetching, caching, streaming, and bundling behaviour can be very different in production: build the app, test the real route, throttle the network if needed, and record the interaction. The user does not care that the framework is doing something clever — they care that the app feels immediate.
 
 ## Final thoughts
 
-The fix here was not one magic trick.
+The fix here was not one magic trick. It was a stack. First, give the navigation a floor with `loading.tsx`. Then, use `<Link>` so Next can prefetch visible destinations. Then, question the data path — if the segment can be cached, cache it. That is how you turn a janky tab interaction into something that feels instant.
 
-It was a stack.
-
-First, give the navigation a floor with `loading.tsx`.
-
-Then, use `<Link>` so Next can prefetch visible destinations.
-
-Then, question the data path. If the segment can be cached, cache it.
-
-That is how you turn a janky tab interaction into something that feels instant.
-
-And this is why tiny performance details matter.
-
-A user may not know what an RSC payload is. They may not know what prefetching is. They may not know whether your route segment is cached.
-
-But they know when an app feels heavy.
-
-And they know when it feels amazing.
-
+And this is why tiny performance details matter. A user may not know what an RSC payload is, what prefetching is, or whether your route segment is cached. But they know when an app feels heavy. And they know when it feels amazing.

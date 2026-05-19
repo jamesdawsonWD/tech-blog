@@ -55,7 +55,7 @@ export function LcpBadge() {
   return (
     <div
       className={`fixed top-3 right-3 z-50 rounded-md border px-2 py-1 text-xs font-mono shadow-sm tabular-nums ${
-        lcp != null ? lcpColor(lcp) : "border-zinc-200 bg-white text-zinc-900"
+        lcp != null ? lcpColor(lcp) : "border-zinc-800 bg-zinc-900 text-zinc-50"
       }`}
     >
       LCP <span className="font-semibold">{lcp != null ? `${lcp}ms` : "…"}</span>

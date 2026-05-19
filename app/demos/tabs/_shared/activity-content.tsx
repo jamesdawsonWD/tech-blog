@@ -11,16 +11,16 @@ export function ActivityContent() {
   return (
     <div className="space-y-4">
       <ContentMarker name="activity" />
-      <h2 className="text-xl font-semibold text-zinc-900">Activity</h2>
+      <h2 className="text-xl font-semibold text-zinc-50">Activity</h2>
       <div className="space-y-3">
         {messages.map((m, i) => (
           <div key={i} className="flex gap-3">
-            <div className="size-8 shrink-0 rounded-full bg-zinc-100 flex items-center justify-center text-xs font-medium text-zinc-700">
+            <div className="size-8 shrink-0 rounded-full bg-zinc-700 flex items-center justify-center text-xs font-medium text-zinc-200">
               {m.name[0]}
             </div>
-            <div className="flex-1 rounded-lg border border-zinc-200 bg-white p-3">
-              <div className="text-xs text-zinc-500 mb-1">{m.name}</div>
-              <div className="text-sm text-zinc-900">{m.text}</div>
+            <div className="flex-1 rounded-lg border border-zinc-700 bg-zinc-800 p-3">
+              <div className="text-xs text-zinc-400 mb-1">{m.name}</div>
+              <div className="text-sm text-zinc-50">{m.text}</div>
             </div>
           </div>
         ))}

@@ -22,8 +22,34 @@ function lcpBucket(ms: number) {
 }
 
 export default function DemoFrame(props: { defaultVariant?: Variant }) {
+  const variant = props.defaultVariant ?? "baseline";
+
+  // Warm the demo route on idle, before DeferredMount ever mounts the iframe.
+  // On production these routes are cold serverless functions, so prefetching
+  // the document eliminates the cold start the user sees when scrolling in.
+  useEffect(() => {
+    const href = `/demos/tabs/${variant}/${START_TAB}?delay=400&t=0`;
+    const run = () => {
+      if (document.querySelector(`link[rel="prefetch"][href="${href}"]`)) return;
+      const link = document.createElement("link");
+      link.rel = "prefetch";
+      link.as = "document";
+      link.href = href;
+      document.head.appendChild(link);
+    };
+    const w = window as Window & {
+      requestIdleCallback?: (cb: () => void, o?: { timeout?: number }) => number;
+    };
+    if (typeof w.requestIdleCallback === "function") {
+      w.requestIdleCallback(run, { timeout: 3000 });
+      return;
+    }
+    const id = setTimeout(run, 1500);
+    return () => clearTimeout(id);
+  }, [variant]);
+
   return (
-    <DeferredMount minHeight={700} rootMargin="600px">
+    <DeferredMount minHeight={700} rootMargin="1200px">
       <DemoFrameInner {...props} />
     </DeferredMount>
   );
@@ -42,6 +68,7 @@ function DemoFrameInner({
   const [contentMs, setContentMs] = useState<number | null>(null);
   const [waitingSkeleton, setWaitingSkeleton] = useState(false);
   const [waitingContent, setWaitingContent] = useState(false);
+  const [frameLoading, setFrameLoading] = useState(true);
   const lastClickRef = useRef<number | null>(null);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
 
@@ -87,6 +114,13 @@ function DemoFrameInner({
     lastClickRef.current = null;
     setCurrentPath(`/demos/tabs/${variant}/${START_TAB}`);
   }, [variant, nonce]);
+
+  // Show the loader whenever the iframe document reloads (variant / delay /
+  // cold-reset all change `src`). Internal tab clicks don't change `src`, so
+  // the loader stays out of the way of the demo itself.
+  useEffect(() => {
+    setFrameLoading(true);
+  }, [src]);
 
   function resetCold() {
     setNonce(Date.now());
@@ -161,13 +195,25 @@ function DemoFrameInner({
           <span className="ml-2 font-mono truncate">{currentPath}</span>
         </div>
 
-        <iframe
-          ref={iframeRef}
-          key={nonce}
-          src={src}
-          className="w-full h-[540px] bg-background"
-          title={`tabs-${variant}`}
-        />
+        <div className="relative h-[540px]">
+          <div
+            aria-hidden
+            className={cn(
+              "pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-background transition-opacity duration-300",
+              frameLoading ? "opacity-100" : "opacity-0"
+            )}
+          >
+            <Loader2 className="size-6 animate-spin text-muted-foreground" />
+          </div>
+          <iframe
+            ref={iframeRef}
+            key={nonce}
+            src={src}
+            onLoad={() => setFrameLoading(false)}
+            className="w-full h-full bg-background"
+            title={`tabs-${variant}`}
+          />
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-3 text-sm">

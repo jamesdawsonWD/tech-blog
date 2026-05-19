@@ -31,6 +31,7 @@ export default function CoverImageWithSkeleton({
           alt={alt}
           fill
           priority
+          unoptimized
           sizes="(min-width: 1024px) 1024px, 100vw"
           className="z-0 object-cover"
         />
@@ -42,6 +43,7 @@ export default function CoverImageWithSkeleton({
           alt={alt}
           fill
           priority
+          unoptimized
           sizes="(min-width: 1024px) 1024px, 100vw"
           className="z-0 object-cover"
         />

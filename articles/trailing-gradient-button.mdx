@@ -11,9 +11,7 @@ components: ["CodeBlock", "CodeGroup", "ConicGradient", "ConicStatic", "RaycastB
 
 ---
 
-Ok, so I have been getting really inspired recently by the [raycast landing page](https://raycast.com). The whole site is really beautiful but there is one thing that I really wanted to learn how to make: this cool button effect.
-
-It took me a lot longer than I want to admit to get this to finally work and the process was super fascinating. Let's dive in!
+Ok, so I have been getting really inspired recently by the [raycast landing page](https://raycast.com). The whole site is really beautiful, but there is one thing I really wanted to learn how to make: this cool button effect. It took me a lot longer than I want to admit to get this working, and the process was super fascinating. Let's dive in!
 
 <RaycastButton />
 
@@ -21,7 +19,9 @@ It took me a lot longer than I want to admit to get this to finally work and the
 
 This button has a lot of different moving parts but let’s look at the most basic element: the conic gradient. What's a conic gradient?
 
-> The `conic-gradient()` CSS function creates an image consisting of a gradient with color transitions rotated around a center point (rather than radiating from the center). Example conic gradients include pie charts and color wheels.
+<Quote author="MDN Web Docs">
+The `conic-gradient()` CSS function creates an image consisting of a gradient with color transitions rotated around a center point (rather than radiating from the center). Example conic gradients include pie charts and color wheels.
+</Quote>
 
 Let’s look at a basic conic gradient.
 
@@ -58,9 +58,7 @@ What we have here is a conic that has been rotated `-80deg`, positioned at `30px
 
 ::raycast-conic-start::
 
-Now we can get into the fun stuff: the animation.
-
-There are two options for animating this: JavaScript or CSS. I used CSS via the [`@property`](https://developer.mozilla.org/en-US/docs/Web/CSS/@property) rule from the [Houdini API](https://developer.mozilla.org/en-US/docs/Web/API/Houdini_APIs). It’s not supported on every browser, so double check if you’re deploying this in production.
+Now we can get into the fun stuff: the animation. There are two options for animating this — JavaScript or CSS — and I used CSS via the [`@property`](https://developer.mozilla.org/en-US/docs/Web/CSS/@property) rule from the [Houdini API](https://developer.mozilla.org/en-US/docs/Web/API/Houdini_APIs). It’s not supported on every browser, so double check if you’re deploying this in production.
 
 First let’s animate the **position** of the conic:
 

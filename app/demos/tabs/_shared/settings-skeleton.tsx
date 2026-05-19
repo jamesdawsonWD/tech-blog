@@ -1,7 +1,7 @@
 import { SkeletonMarker } from "./content-marker";
 
 function Bar({ className = "" }: { className?: string }) {
-  return <div className={`animate-pulse rounded-md bg-zinc-200 ${className}`} />;
+  return <div className={`animate-pulse rounded-md bg-zinc-700 ${className}`} />;
 }
 
 export function SettingsSkeleton() {

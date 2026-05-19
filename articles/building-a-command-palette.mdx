@@ -11,43 +11,25 @@ coverComponent: "CmdKDemo"
 draft: true
 ---
 
-Most Cmd+K palettes are almost great.
-
-Then they trip over the same things: a slow first open, an action API that only handles sync work, no cancellation when the query changes mid-fetch, or a confirm flow awkwardly bolted on at the end.
-
-None of this is hard to fix. But you have to make the right architectural choices early, because these problems all touch each other.
+Most Cmd+K palettes are almost great. Then they trip over the same things: a slow first open, an action API that only handles sync work, no cancellation when the query changes mid-fetch, or a confirm flow awkwardly bolted on at the end. None of this is hard to fix, but you have to make the right architectural choices early, because these problems all touch each other.
 
 The main point: **a command palette is not just a listbox in a dialog. It is an action orchestrator.**
 
-I built one recently as an interview whiteboard exercise. This is the version I would actually ship.
+I built one recently as an interview whiteboard exercise, and this is the version I would actually ship.
 
 Try `deploy` for async + confirm, `delete` for a destructive confirm, `toggle theme` for a sync action, or any article title for async search. Esc closes. Enter runs. Arrows navigate. On mobile, it becomes a full-screen sheet instead of a centred popover.
 
 ## Start with the right primitive
 
-Before the architecture, pick the right UI primitive.
+Before the architecture, pick the right UI primitive, and do not roll your own listbox inside a Dialog. Use `cmdk` — paco’s library, around 3KB gzipped. It gives you keyboard navigation, filtering, `Command.Input`, `Command.List`, `Command.Group`, `Command.Item`, and the combobox-in-dialog ARIA pattern already wired correctly. The shadcn `Command` and `CommandDialog` components sit directly on top of it.
 
-Do not roll your own listbox inside a Dialog.
+Combobox primitives like Base UI or Radix are the wrong shape for this. They are designed for inputs anchored to a trigger, but Cmd+K is a global modal with a search input that is not anchored to anything.
 
-Use `cmdk` — paco’s library, around 3KB gzipped. It gives you keyboard navigation, filtering, `Command.Input`, `Command.List`, `Command.Group`, `Command.Item`, and the combobox-in-dialog ARIA pattern already wired correctly.
-
-The shadcn `Command` and `CommandDialog` components sit directly on top of it.
-
-Combobox primitives like Base UI or Radix are the wrong shape for this. They are designed for inputs anchored to a trigger. Cmd+K is a global modal with a search input that is not anchored to anything.
-
-The UI primitive gets you the shell.
-
-The action layer is where the real design work starts.
+The UI primitive gets you the shell. The action layer is where the real design work starts.
 
 ## Pull from sources. Do not push into a registry.
 
-There are two common ways to model command palette items.
-
-You can have a global registry where features push actions into the palette.
-
-Or you can have an orchestrator that pulls actions from a fixed list of sources.
-
-I prefer the pull model.
+There are two common ways to model command palette items. You can have a global registry where features push actions into the palette, or you can have an orchestrator that pulls actions from a fixed list of sources. I prefer the pull model.
 
 <CodeBlock name="types.ts" lang="ts">
 {`export type SourceCtx = {
@@ -70,23 +52,13 @@ There are three decisions here I would defend.
 
 ### 1. Sources can be sync or async
 
-`getItems` returns `Action[] | Promise<Action[]>`.
+`getItems` returns `Action[] | Promise<Action[]>`, and that matters. Static actions, recent items, and local navigation should not be forced through `async`. If everything becomes a Promise, even simple filtering waits for a microtask, which creates small flashes on every keystroke.
 
-That matters.
-
-Static actions, recent items, and local navigation should not be forced through `async`. If everything becomes a Promise, even simple filtering waits for a microtask. That creates small flashes on every keystroke.
-
-Sync sources should stay sync.
-
-Async sources should only be async when they actually need to be.
+Sync sources should stay sync, and async sources should only be async when they actually need to be.
 
 ### 2. Debounce belongs to the source
 
-A global debounce is too blunt.
-
-Set it to 200ms and local filtering feels laggy. Set it to 50ms and your API gets hammered.
-
-Per-source debounce is cleaner:
+A global debounce is too blunt. Set it to 200ms and local filtering feels laggy; set it to 50ms and your API gets hammered. Per-source debounce is cleaner:
 
 - local sources run on every keystroke
 - API search waits for 150–200ms of idle time
@@ -96,19 +68,9 @@ The orchestrator does not need to understand why one source is fast and another 
 
 ### 3. Empty-query behaviour belongs to the source
 
-The orchestrator should call every active source, even when `query === ""`.
+The orchestrator should call every active source, even when `query === ""`. Each source decides what empty means: `recent` might return recent actions, `searchApi` might return `[]`, and `nav` might return the full list for browse mode.
 
-Each source decides what empty means.
-
-`recent` might return recent actions.
-
-`searchApi` might return `[]`.
-
-`nav` might return the full list for browse mode.
-
-That keeps the orchestrator boring.
-
-Boring orchestrators are good.
+That keeps the orchestrator boring, and boring orchestrators are good.
 
 ## Use one Action shape
 
@@ -147,13 +109,7 @@ Two details matter most.
 
 ### Confirm is metadata, not a separate action type
 
-`confirm` describes how the action should run.
-
-It does not describe what the action is.
-
-That is why it belongs on the action as metadata.
-
-If you make confirm a discriminated union, you quickly end up with awkward variants like:
+`confirm` describes how the action should run, not what the action is. That is why it belongs on the action as metadata. If you make confirm a discriminated union, you quickly end up with awkward variants like:
 
 - sync action
 - async action
@@ -161,31 +117,21 @@ If you make confirm a discriminated union, you quickly end up with awkward varia
 - async confirm action
 - destructive async confirm action
 
-That shape gets worse over time.
-
-A single action with optional confirm metadata stays flexible.
+That shape gets worse over time. A single action with optional confirm metadata stays flexible.
 
 ### Every action gets an AbortSignal
 
-Async actions need to be cancellable.
-
-If the user starts a deploy, closes the palette, changes route, or triggers another action, the running work should have a way to stop.
-
-Most implementations forget this.
+Async actions need to be cancellable. If the user starts a deploy, closes the palette, changes route, or triggers another action, the running work should have a way to stop. Most implementations forget this.
 
 The executor can stay simple:
 
 `await action.perform(ctx)`
 
-If `action.confirm` exists, the executor shows the confirm view first. If the user accepts, it runs `perform`.
-
-Same action. Same contract. Different execution path.
+If `action.confirm` exists, the executor shows the confirm view first, and if the user accepts, it runs `perform`. Same action, same contract, different execution path.
 
 ## The orchestrator: useReducer and AbortController
 
-This is the core data flow.
-
-Keep it small enough to draw on a whiteboard.
+This is the core data flow. Keep it small enough to draw on a whiteboard.
 
 <CodeBlock name="orchestrator.ts" lang="ts">
 {`type SourceState =
@@ -215,17 +161,11 @@ This gives you five useful guarantees.
 4. **AbortError is not treated as failure.** Cancellation is expected behaviour, not an error state.
 5. **Debounce timers are cancelled too.** Otherwise an old delayed source can come back from the dead.
 
-I would keep this reducer local to the palette.
-
-Not in context. Not in Zustand. Not in a global store.
-
-The query state only matters while the palette is mounted. A global store adds ceremony without buying much.
+I would keep this reducer local to the palette — not in context, not in Zustand, not in a global store. The query state only matters while the palette is mounted, and a global store adds ceremony without buying much.
 
 ## Make cold opens feel instant
 
-The palette should open in under 100ms, even if the body is code-split.
-
-The trick is to preload the chunk before the user finishes the shortcut.
+The palette should open in under 100ms, even if the body is code-split. The trick is to preload the chunk before the user finishes the shortcut.
 
 <CodeBlock name="palette-host.tsx" lang="tsx">
 {`const PaletteBody = lazy(() => import("./command-palette"));
@@ -264,21 +204,13 @@ There are three preload paths:
 - hover or focus on the trigger
 - pressing Meta or Control before pressing K
 
-That last one is surprisingly useful. There is often a 50–150ms gap between Meta-down and K-down. That is free preload time.
+That last one is surprisingly useful. There is often a 50–150ms gap between Meta-down and K-down, and that is free preload time.
 
-`import()` is cached, so calling it from multiple places is fine.
-
-If the user still beats every preload trigger — cold load, slow CPU, idle callback never fired — the dialog opens with a static skeleton. The real palette appears as soon as the chunk resolves.
-
-The important thing is that ⌘K never feels like nothing happened.
+`import()` is cached, so calling it from multiple places is fine. If the user still beats every preload trigger — cold load, slow CPU, idle callback never fired — the dialog opens with a static skeleton, and the real palette appears as soon as the chunk resolves. The important thing is that ⌘K never feels like nothing happened.
 
 ## Skeletons should not flash
 
-Loading UI is only useful once the user can actually perceive the delay.
-
-When the async search source is loading, render the section heading immediately. Then wait 100ms before showing skeleton rows.
-
-If results arrive quickly, the skeleton never appears.
+Loading UI is only useful once the user can actually perceive the delay. When the async search source is loading, render the section heading immediately, then wait 100ms before showing skeleton rows. If results arrive quickly, the skeleton never appears.
 
 <CodeBlock name="section-skeleton.tsx" lang="tsx">
 {`export function SectionSkeleton({ heading, rows = 4 }: Props) {
@@ -301,9 +233,7 @@ If results arrive quickly, the skeleton never appears.
 }`}
 </CodeBlock>
 
-That small delay avoids the classic loading flash.
-
-A good default is:
+That small delay avoids the classic loading flash. A good default is:
 
 - wait 100ms before showing the skeleton
 - fade it in over 150ms
@@ -323,6 +253,4 @@ The architecture comes down to a few choices:
 - **Preload on idle, hover, and lone Meta** because cold opens should be rare.
 - **Delay skeletons by 100ms** because flashing loading states make the UI feel worse.
 
-The code matters, but the contracts matter more.
-
-Get the contracts right and the implementation becomes much easier to reason about.
+The code matters, but the contracts matter more. Get the contracts right and the implementation becomes much easier to reason about.
