@@ -1,249 +1,61 @@
 "use client";
 
-import { useState, useRef, useEffect, type ReactNode } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { useState, useRef, useCallback, type ReactNode } from "react";
 import ArticleCard from "@/components/article-card";
 import PhotoGallery from "@/components/photo-gallery";
 import ScrambleText from "@/components/scramble-text";
+import { useClickOutside } from "@/hooks/use-click-outside";
+import Badge from "@/components/home/badge";
+import BlurrableSpan from "@/components/home/blurrable-span";
+import type { BadgeKey, PreviewSide } from "@/components/home/badge-types";
+import type { PostMeta } from "@/lib/articles";
 
-const BADGES = [
-  { label: "Dog Dad", key: "dog-dad" },
-  { label: "Human Father", key: "human-father" },
-  { label: "Husband", key: "husband" },
-  { label: "Tinkerer", key: "tinkerer" },
-  { label: "designing and building", key: "designing-building" },
-] as const;
+type BioBadgeKey = "human-father" | "dog-dad" | "husband";
 
-type BadgeKey =
-  | (typeof BADGES)[number]["key"]
-  | "write"
-  | "cv"
-  | "contact"
-  | "last-10-years"
-  | null;
+type BioSegment =
+  | { kind: "text"; content: ReactNode }
+  | {
+      kind: "badge";
+      key: BioBadgeKey;
+      label: string;
+      side: PreviewSide;
+    };
 
-type PreviewSide = "left" | "right";
+// The bio reads as an ordered list of text runs interleaved with interactive
+// badges. Driving it from data keeps behaviour identical while removing the
+// hand-repeated <Badge> markup.
+const BIO_SEGMENTS: BioSegment[] = [
+  { kind: "text", content: "A very recent " },
+  { kind: "badge", key: "human-father", label: "Human Dad", side: "right" },
+  { kind: "text", content: ", a less recent " },
+  { kind: "badge", key: "dog-dad", label: "Dog Dad", side: "right" },
+  { kind: "text", content: <> and a </> },
+  { kind: "badge", key: "husband", label: "Husband-to-be", side: "left" },
+  {
+    kind: "text",
+    content: (
+      <>
+        . For the last <strong>10 years</strong> I have been{" "}
+        <strong>Designing and Building</strong> web based software. I am
+        obsessed with web performance and crafting beautiful interfaces.
+      </>
+    ),
+  },
+];
 
-function BlurrableSpan({
-  children,
-  hoveredBadge,
-  badgeKey,
-}: {
-  children: ReactNode;
-  hoveredBadge: BadgeKey;
-  badgeKey: BadgeKey;
-}) {
-  const shouldBlur = hoveredBadge && badgeKey !== hoveredBadge;
-
-  return (
-    <motion.span
-      animate={{
-        opacity: shouldBlur ? 0.45 : 1,
-        filter: shouldBlur ? "blur(1.5px)" : "blur(0px)",
-      }}
-      transition={{ duration: 0.2, ease: "easeInOut" }}
-      className={shouldBlur ? "select-none" : ""}
-    >
-      {children}
-    </motion.span>
-  );
-}
-
-function WavyText({ text }: { text: string }) {
-  return (
-    <span className="wavy-text inline-flex leading-none">
-      {text.split("").map((char, i) => (
-        <span
-          key={i}
-          style={{ ["--wavy-delay" as string]: `${i * 30}ms` }}
-          className={
-            char === " " ? "inline-block w-[0.25em]" : "wavy-letter inline-block"
-          }
-        >
-          {char}
-        </span>
-      ))}
-    </span>
-  );
-}
-
-function DesktopHoverPhotoCard({
-  show,
-  side = "right",
-  children,
-}: {
-  show: boolean;
-  side?: PreviewSide;
-  children: ReactNode;
-}) {
-  const isLeft = side === "left";
-
-  return (
-    <AnimatePresence initial={false}>
-      {show && (
-        <motion.div
-          initial={{
-            opacity: 0,
-            x: isLeft ? 18 : -18,
-            y: 8,
-            rotate: isLeft ? -5 : 5,
-            scale: 0.96,
-          }}
-          animate={{
-            opacity: 1,
-            x: 0,
-            y: 0,
-            rotate: isLeft ? -3 : 3,
-            scale: 1,
-          }}
-          exit={{
-            opacity: 0,
-            x: isLeft ? 18 : -18,
-            y: 8,
-            rotate: isLeft ? -5 : 5,
-            scale: 0.96,
-          }}
-          transition={{ duration: 0.18, ease: "easeOut" }}
-          className={[
-            "absolute top-1/2 z-50 hidden md:block",
-            isLeft
-              ? "right-full mr-4 -translate-y-1/2"
-              : "left-full ml-4 -translate-y-1/2",
-          ].join(" ")}
-        >
-          <div className="w-[220px] overflow-hidden rounded-2xl border border-black/10 bg-white shadow-[0_18px_60px_rgba(0,0,0,0.18)]">
-            {children}
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-}
-
-function MobileInlinePhotoCard({
-  show,
-  children,
-}: {
-  show: boolean;
-  children: ReactNode;
-}) {
-  return (
-    <AnimatePresence initial={false}>
-      {show && (
-        <motion.div
-          initial={{ opacity: 0, y: 8, scale: 0.98 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 6, scale: 0.98 }}
-          transition={{ duration: 0.18, ease: "easeOut" }}
-          className="absolute left-0 top-full z-40 mt-3 block md:hidden"
-        >
-          <div className="w-[170px] overflow-hidden rounded-2xl border border-black/10 bg-white shadow-[0_14px_40px_rgba(0,0,0,0.14)]">
-            {children}
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-}
-
-function Badge({
-  label,
-  badgeKey,
-  hoveredBadge,
-  isLocked = false,
-  preview,
-  previewSide = "right",
-  onHover,
-  onLeave,
-  onClick,
-  onFocus,
-  onBlur,
-}: {
-  label: string;
-  badgeKey: BadgeKey;
-  hoveredBadge: BadgeKey;
-  isLocked?: boolean;
-  preview?: ReactNode;
-  previewSide?: PreviewSide;
-  onHover?: () => void;
-  onLeave?: () => void;
-  onClick?: () => void;
-  onFocus?: () => void;
-  onBlur?: () => void;
-}) {
-  const [isFocused, setIsFocused] = useState(false);
-  const shouldBlur = hoveredBadge && badgeKey !== hoveredBadge;
-  const isHovered = hoveredBadge === badgeKey;
-  const showPreview = isHovered || isFocused || isLocked;
-
-  return (
-    <span className="relative inline-flex align-baseline">
-      <motion.button
-        type="button"
-        data-badge
-        aria-pressed={isLocked}
-        aria-label={`View ${label}`}
-        onFocus={() => {
-          setIsFocused(true);
-          onFocus?.();
-        }}
-        onBlur={() => {
-          setIsFocused(false);
-          onBlur?.();
-        }}
-        onMouseEnter={onHover}
-        onMouseLeave={onLeave}
-        onClick={onClick}
-        animate={{
-          backgroundColor:
-            isHovered || isFocused || isLocked
-              ? "#000000"
-              : "#dcdfd6",
-        }}
-        transition={{ duration: 0.2, ease: "easeInOut" }}
-        className={`cursor-pointer rounded bg-[#dcdfd6] border-0 !p-1 font-medium leading-none text-foreground hover:!text-background ${
-          shouldBlur ? "select-none" : ""
-        } ${isLocked || isFocused ? "!text-background" : ""}`}
-      >
-        <WavyText text={label} />
-      </motion.button>
-
-      {preview ? (
-        <>
-          <DesktopHoverPhotoCard show={showPreview} side={previewSide}>
-            {preview}
-          </DesktopHoverPhotoCard>
-
-          <MobileInlinePhotoCard show={showPreview}>
-            {preview}
-          </MobileInlinePhotoCard>
-        </>
-      ) : null}
-    </span>
-  );
-}
-
-export default function HomeContent({ posts }: { posts: any[] }) {
+export default function HomeContent({ posts }: { posts: PostMeta[] }) {
   const [hoveredBioBadge, setHoveredBioBadge] = useState<BadgeKey>(null);
   const [activeBioBadge, setActiveBioBadge] = useState<BadgeKey>(null);
   const bioRef = useRef<HTMLDivElement | null>(null);
 
   const visibleBioBadge = hoveredBioBadge ?? activeBioBadge;
 
-  useEffect(() => {
-    function handlePointerDown(event: PointerEvent) {
-      if (!bioRef.current) return;
-
-      const target = event.target as Node;
-      if (!bioRef.current.contains(target)) {
-        setActiveBioBadge(null);
-        setHoveredBioBadge(null);
-      }
-    }
-
-    document.addEventListener("pointerdown", handlePointerDown);
-    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  const clearBioBadges = useCallback(() => {
+    setActiveBioBadge(null);
+    setHoveredBioBadge(null);
   }, []);
+
+  useClickOutside(bioRef, clearBioBadges);
 
   return (
     <>
@@ -260,78 +72,38 @@ export default function HomeContent({ posts }: { posts: any[] }) {
 
           <div
             ref={bioRef}
-            className="mt-4 text-base font-normal leading-[2] tracking-[-0.0125em] text-[#141414]"
+            className="mt-4 text-base font-normal leading-[2] tracking-[-0.0125em] text-foreground"
           >
-            <BlurrableSpan hoveredBadge={visibleBioBadge} badgeKey={null}>
-              A very recent{" "}
-            </BlurrableSpan>
-
-            <Badge
-              label="Human Dad"
-              badgeKey="human-father"
-              hoveredBadge={visibleBioBadge}
-              isLocked={activeBioBadge === "human-father"}
-              previewSide="right"
-              preview={<PhotoGallery galleryKey="human-father" />}
-              onHover={() => setHoveredBioBadge("human-father")}
-              onLeave={() => setHoveredBioBadge(null)}
-              onFocus={() => setHoveredBioBadge("human-father")}
-              onBlur={() => setHoveredBioBadge(null)}
-              onClick={() =>
-                setActiveBioBadge((current) =>
-                  current === "human-father" ? null : "human-father"
-                )
-              }
-            />
-
-            <BlurrableSpan hoveredBadge={visibleBioBadge} badgeKey={null}>
-              , a less recent{" "}
-            </BlurrableSpan>
-
-            <Badge
-              label="Dog Dad"
-              badgeKey="dog-dad"
-              hoveredBadge={visibleBioBadge}
-              isLocked={activeBioBadge === "dog-dad"}
-              previewSide="right"
-              preview={<PhotoGallery galleryKey="dog-dad" />}
-              onHover={() => setHoveredBioBadge("dog-dad")}
-              onLeave={() => setHoveredBioBadge(null)}
-              onFocus={() => setHoveredBioBadge("dog-dad")}
-              onBlur={() => setHoveredBioBadge(null)}
-              onClick={() =>
-                setActiveBioBadge((current) =>
-                  current === "dog-dad" ? null : "dog-dad"
-                )
-              }
-            />
-
-            <BlurrableSpan hoveredBadge={visibleBioBadge} badgeKey={null}>
-              {" "}and a{" "}
-            </BlurrableSpan>
-
-            <Badge
-              label="Husband-to-be"
-              badgeKey="husband"
-              hoveredBadge={visibleBioBadge}
-              isLocked={activeBioBadge === "husband"}
-              previewSide="left"
-              preview={<PhotoGallery galleryKey="husband" />}
-              onHover={() => setHoveredBioBadge("husband")}
-              onLeave={() => setHoveredBioBadge(null)}
-              onFocus={() => setHoveredBioBadge("husband")}
-              onBlur={() => setHoveredBioBadge(null)}
-              onClick={() =>
-                setActiveBioBadge((current) =>
-                  current === "husband" ? null : "husband"
-                )
-              }
-            />
-
-            <BlurrableSpan hoveredBadge={visibleBioBadge} badgeKey={null}>
-              . For the last <strong>10 years</strong> I have been <strong>Designing and Building</strong> web
-              based software. I am obsessed with web performance and crafting beautiful interfaces.
-            </BlurrableSpan>
+            {BIO_SEGMENTS.map((segment, i) =>
+              segment.kind === "text" ? (
+                <BlurrableSpan
+                  key={`text-${i}`}
+                  hoveredBadge={visibleBioBadge}
+                  badgeKey={null}
+                >
+                  {segment.content}
+                </BlurrableSpan>
+              ) : (
+                <Badge
+                  key={segment.key}
+                  label={segment.label}
+                  badgeKey={segment.key}
+                  hoveredBadge={visibleBioBadge}
+                  isLocked={activeBioBadge === segment.key}
+                  previewSide={segment.side}
+                  preview={<PhotoGallery galleryKey={segment.key} />}
+                  onHover={() => setHoveredBioBadge(segment.key)}
+                  onLeave={() => setHoveredBioBadge(null)}
+                  onFocus={() => setHoveredBioBadge(segment.key)}
+                  onBlur={() => setHoveredBioBadge(null)}
+                  onClick={() =>
+                    setActiveBioBadge((current) =>
+                      current === segment.key ? null : segment.key
+                    )
+                  }
+                />
+              )
+            )}
           </div>
 
           <div className="mt-6 flex items-center gap-4">
