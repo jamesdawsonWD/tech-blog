@@ -3,7 +3,10 @@
 import { useState } from "react";
 import Image from "next/image";
 
-export default function CoverImageWithSkeleton({
+// Renders the article cover: a static image, a poster image, or an
+// autoplaying muted video with a poster fallback. The container keeps a
+// muted background so there's a neutral placeholder while media decodes.
+export default function CoverMedia({
   src,
   videoSrc,
   videoPoster,
@@ -32,7 +35,6 @@ export default function CoverImageWithSkeleton({
           fill
           priority
           unoptimized
-          sizes="(min-width: 1024px) 1024px, 100vw"
           className="z-0 object-cover"
         />
       )}
@@ -44,7 +46,6 @@ export default function CoverImageWithSkeleton({
           fill
           priority
           unoptimized
-          sizes="(min-width: 1024px) 1024px, 100vw"
           className="z-0 object-cover"
         />
       )}
@@ -54,7 +55,6 @@ export default function CoverImageWithSkeleton({
           src={videoSrc}
           poster={posterSrc}
           preload="auto"
-          fetchPriority="high"
           className="absolute inset-0 z-10 h-full w-full object-cover"
           autoPlay
           loop

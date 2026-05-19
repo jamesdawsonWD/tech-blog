@@ -2,6 +2,7 @@ import fs from "fs"
 import path from "path"
 import matter from "gray-matter"
 import { withContentHash } from "./asset-hash"
+import { coverVariantFor } from "@/scripts/lib/asset-pipeline"
 
 const postsDirectory = path.join(process.cwd(), "articles")
 
@@ -44,14 +45,25 @@ function coverFor(coverImage: string | undefined): string | undefined {
   if (!coverImage || !coverImage.startsWith("/")) {
     return withContentHash(coverImage)
   }
-  const variant = `${coverImage.replace(/\.[^.]+$/, "")}.cover.jpg`
+  const variant = coverVariantFor(coverImage)
   if (fs.existsSync(path.join(process.cwd(), "public", variant))) {
     return withContentHash(variant)
   }
   return withContentHash(coverImage)
 }
 
+// Drafts are committed but hidden: visible in dev (shown faded / reachable),
+// omitted entirely in prod (filtered out + not statically built / 404).
+export function shouldShowDrafts(): boolean {
+  return process.env.NODE_ENV !== "production"
+}
+
 export type PostMeta = Omit<Post, "content">
+
+export async function getVisiblePosts(): Promise<PostMeta[]> {
+  const allPosts = await getAllPosts()
+  return shouldShowDrafts() ? allPosts : allPosts.filter((post) => !post.draft)
+}
 
 export async function getAllPosts(): Promise<PostMeta[]> {
   if (!fs.existsSync(postsDirectory)) {
