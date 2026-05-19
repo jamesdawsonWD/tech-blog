@@ -12,7 +12,7 @@
     --popover-foreground: 20 14.3% 4.1%;
     --primary: 24 9.8% 10%;
     --primary-foreground: 60 9.1% 97.8%;
-    --secondary: 78, 28%, 93%;
+    --secondary: 78 28% 93%;
     --secondary-foreground: 24 9.8% 10%;
     --muted: 60 4.8% 95.9%;
     --muted-foreground: 25 5.3% 44.7%;
@@ -55,6 +55,20 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Accessibility: respect the user's reduced-motion preference globally.
+   Neutralizes animations, transitions and smooth scrolling for everyone
+   who has asked the OS to minimize motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 

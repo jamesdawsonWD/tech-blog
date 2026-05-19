@@ -66,22 +66,21 @@ export default function TypeaheadDemo() {
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebouncedValue(query.trim(), DEBOUNCE_MS);
 
-  const { results, status, error } = useProductSearch(debouncedQuery);
-
   const trimmed = query.trim();
 
-  // Synchronously check the cache against the live query — previously seen
-  // searches feel instant without waiting out the debounce.
-  const cached = useMemo(() => {
-    if (trimmed.length < MIN_QUERY_LENGTH) return undefined;
-    return readCache(trimmed);
-  }, [trimmed]);
+  // useProductSearch is the single cache authority: it resolves the cache
+  // synchronously against the live query (instant results for previously
+  // seen searches) and owns the debounced fetch. The component never reads
+  // the cache directly.
+  const { results, status, error, fromCache } = useProductSearch({
+    query: trimmed,
+    debouncedQuery,
+  });
 
-  const effective = cached ?? results;
-  const { items, selectedItem, setSelectedItem } = useTypeaheadItems(effective);
+  const { items, selectedItem, setSelectedItem } = useTypeaheadItems(results);
 
   const pendingDebounce = trimmed.length >= MIN_QUERY_LENGTH && trimmed !== debouncedQuery;
-  const isSearching = !cached && (status === "loading" || pendingDebounce);
+  const isSearching = !fromCache && (status === "loading" || pendingDebounce);
   const showLoadingUi = useDelayedFlag(isSearching, LOADING_UI_DELAY_MS);
   const showError = status === "error";
   const showPopup = trimmed.length >= MIN_QUERY_LENGTH;
@@ -189,53 +188,83 @@ export default function TypeaheadDemo() {
   );
 }
 
-function useProductSearch(query: string) {
-  const [results, setResults] = useState<SearchResult[]>([]);
-  const [status, setStatus] = useState<Status>("idle");
+/**
+ * Single source of truth for search results and the cache.
+ *
+ * - `query` is the live, trimmed input. It drives synchronous cache
+ *   resolution so a previously seen search renders instantly without
+ *   waiting out the debounce.
+ * - `debouncedQuery` drives the network fetch for cache misses.
+ *
+ * The component derives everything it shows from this hook's return; it
+ * never touches the cache directly. `fromCache` is true when the currently
+ * exposed results came straight from the cache for the live query.
+ */
+function useProductSearch({
+  query,
+  debouncedQuery,
+}: {
+  query: string;
+  debouncedQuery: string;
+}) {
+  // Synchronous cache resolution against the live query — instant results.
+  const cached = useMemo(() => {
+    if (query.length < MIN_QUERY_LENGTH) return undefined;
+    return readCache(query);
+  }, [query]);
+
+  const [fetched, setFetched] = useState<SearchResult[]>([]);
+  const [fetchStatus, setFetchStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (query.length < MIN_QUERY_LENGTH) {
-      setResults([]);
-      setStatus("idle");
+    if (debouncedQuery.length < MIN_QUERY_LENGTH) {
+      setFetched([]);
+      setFetchStatus("idle");
       setError(null);
       return;
     }
 
-    const cached = readCache(query);
-    if (cached) {
-      setResults(cached);
-      setStatus("success");
+    const hit = readCache(debouncedQuery);
+    if (hit) {
+      setFetched(hit);
+      setFetchStatus("success");
       setError(null);
       return;
     }
 
     const controller = new AbortController();
-    setStatus("loading");
+    setFetchStatus("loading");
     setError(null);
 
-    mockSearch(query, controller.signal)
+    mockSearch(debouncedQuery, controller.signal)
       .then((data) => {
         // The fetch can resolve in the microtask queue after the effect has
         // already cleaned up. Without this guard we'd cache a result for a
         // query the user has moved on from.
         if (controller.signal.aborted) return;
-        writeCache(query, data.results);
-        setResults(data.results);
-        setStatus("success");
+        writeCache(debouncedQuery, data.results);
+        setFetched(data.results);
+        setFetchStatus("success");
       })
       .catch((err) => {
         if (controller.signal.aborted) return;
         if (err instanceof Error && err.name === "AbortError") return;
-        setResults([]);
-        setStatus("error");
+        setFetched([]);
+        setFetchStatus("error");
         setError("Search is unavailable.");
       });
 
     return () => controller.abort();
-  }, [query]);
+  }, [debouncedQuery]);
 
-  return { results, status, error };
+  // The live cache hit wins over the (possibly stale) debounced fetch state,
+  // so results stay instant while the debounce settles.
+  const fromCache = cached !== undefined;
+  const results = cached ?? fetched;
+  const status: Status = fromCache ? "success" : fetchStatus;
+
+  return { results, status, error: fromCache ? null : error, fromCache };
 }
 
 function useTypeaheadItems(results: SearchResult[]) {
