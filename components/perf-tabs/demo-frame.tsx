@@ -24,7 +24,14 @@ export default function DemoFrame(props: { defaultVariant?: Variant }) {
   // On production these routes are cold serverless functions, so prefetching
   // the document eliminates the cold start the user sees when scrolling in.
   useEffect(() => {
-    const href = `/demos/tabs/${variant}/${START_TAB}?delay=400&t=0`;
+    // The cached variant is the article's payoff: no simulated latency, just
+    // the real prefetched + cached production route. Other variants keep the
+    // teaching delay. Prefetch href must match the iframe src exactly or the
+    // prefetch cache misses.
+    const href =
+      variant === "cached"
+        ? `/demos/tabs/${variant}/${START_TAB}?t=0`
+        : `/demos/tabs/${variant}/${START_TAB}?delay=400&t=0`;
     const run = () => {
       if (document.querySelector(`link[rel="prefetch"][href="${href}"]`)) return;
       const link = document.createElement("link");
@@ -61,8 +68,13 @@ function DemoFrameInner({
   const lastClickRef = useRef<number | null>(null);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
 
+  // cached = production takeover: ignore the delay slider, serve the real
+  // cached route at its genuine speed. baseline/loading still honour `delay`.
   const src = useMemo(
-    () => `/demos/tabs/${variant}/${START_TAB}?delay=${delay}&t=${nonce}`,
+    () =>
+      variant === "cached"
+        ? `/demos/tabs/${variant}/${START_TAB}?t=${nonce}`
+        : `/demos/tabs/${variant}/${START_TAB}?delay=${delay}&t=${nonce}`,
     [variant, delay, nonce]
   );
 
@@ -224,18 +236,31 @@ function DemoFrameInner({
           ))}
         </div>
 
-        <label className="flex items-center gap-2 text-xs text-muted-foreground">
+        <label
+          className={cn(
+            "flex items-center gap-2 text-xs text-muted-foreground",
+            variant === "cached" && "opacity-40"
+          )}
+          title={
+            variant === "cached"
+              ? "No simulated delay on the cached variant — this is real production speed"
+              : undefined
+          }
+        >
           Delay
           <input
             type="range"
             min={0}
             max={1500}
             step={50}
-            value={delay}
+            value={variant === "cached" ? 0 : delay}
+            disabled={variant === "cached"}
             onChange={(e) => setDelay(Number(e.target.value))}
-            className="w-28 accent-foreground"
+            className="w-28 accent-foreground disabled:cursor-not-allowed"
           />
-          <span className="tabular-nums w-12 text-foreground">{delay}ms</span>
+          <span className="tabular-nums w-12 text-foreground">
+            {variant === "cached" ? "real" : `${delay}ms`}
+          </span>
         </label>
       </div>
     </div>
