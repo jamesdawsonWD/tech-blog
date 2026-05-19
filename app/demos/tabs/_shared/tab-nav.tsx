@@ -68,6 +68,7 @@ function TabNavInner({
             key={item.slug}
             href={`${href}${suffix}`}
             prefetch={prefetch}
+            aria-current={active ? "page" : undefined}
             onClick={() => postClick(item.slug, href)}
             className={cn(
               "relative px-3 py-1.5 rounded-md text-sm transition-colors",

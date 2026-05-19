@@ -130,7 +130,7 @@ export default function DynamicIsland() {
         setIsPlaying(true);
       }
     },
-    [trackIndex, isPlaying]
+    [trackIndex]
   );
 
   // Click outside to collapse
