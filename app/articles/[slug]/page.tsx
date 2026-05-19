@@ -38,10 +38,17 @@ const PushDemo = dynamic(() => import("@/components/array-cheatsheet/push"));
 const Captcha = dynamic(() => import("@/components/captcha/captcha"));
 const RadialButtonDemo = dynamic(() => import("@/components/radial-button/radial-button-demo"));
 const DemoFrame = dynamic(() => import("@/components/perf-tabs/demo-frame"));
+const CmdKDemo = dynamic(() => import("@/components/cmd-k/cmd-k-demo"));
+const TypeaheadDemo = dynamic(() => import("@/components/typeahead/typeahead-demo"));
+
+// Drafts are committed but hidden: reachable in dev, 404 + unbuilt in prod.
+const showDrafts = process.env.NODE_ENV !== "production";
 
 export async function generateStaticParams() {
   const posts = await getAllPosts();
-  return posts.map((post) => ({ slug: post.slug }));
+  return posts
+    .filter((post) => showDrafts || !post.draft)
+    .map((post) => ({ slug: post.slug }));
 }
 
 export async function generateMetadata({
@@ -71,6 +78,7 @@ export default async function BlogPost({
   const { slug } = await params;
   const post = await getPostBySlug(slug);
   if (!post) notFound();
+  if (post.draft && !showDrafts) notFound();
 
   if (post.videoPoster) {
     ReactDOM.preload(post.videoPoster, { as: "image", fetchPriority: "high" });
@@ -96,6 +104,8 @@ export default async function BlogPost({
     Captcha,
     RadialButtonDemo,
     DemoFrame,
+    CmdKDemo,
+    TypeaheadDemo,
   };
 
   type ComponentName = keyof typeof AllClientComponents;
@@ -115,7 +125,7 @@ export default async function BlogPost({
   });
 
   return (
-    <div className="min-h-screen container max-w-5xl py-6 lg:py-12">
+    <div className="min-h-screen container max-w-3xl py-6 lg:py-12">
         <div className="mb-8 flex justify-between items-center">
           <Link
             href="/"
@@ -153,16 +163,25 @@ export default async function BlogPost({
                 </div>
               </div>
         </div>
-                
-        {(post.coverImage || post.videoImage) && (
-          <CoverImageWithSkeleton
-            src={post.coverImage}
-            videoSrc={post.videoImage}
-            videoPoster={post.videoPoster}
-            alt={post.title}
-            slug={slug}
-          />
-        )}
+
+        {post.coverComponent && AllClientComponents[post.coverComponent as ComponentName]
+          ? (() => {
+              const CoverComponent = AllClientComponents[post.coverComponent as ComponentName];
+              return (
+                <div className="mt-4 mb-8">
+                  <CoverComponent />
+                </div>
+              );
+            })()
+          : (post.coverImage || post.videoImage) && (
+              <CoverImageWithSkeleton
+                src={post.coverImage}
+                videoSrc={post.videoImage}
+                videoPoster={post.videoPoster}
+                alt={post.title}
+                slug={slug}
+              />
+            )}
 
         <header className="mt-16 mb-8">
           <div className="space-y-4 w-full flex flex-col items-center">
@@ -178,7 +197,7 @@ export default async function BlogPost({
             </div>
 
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              
+
 
               {post.tags?.length > 0 && (
                 <div className="flex flex-wrap gap-2">

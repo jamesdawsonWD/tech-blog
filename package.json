@@ -19,6 +19,7 @@
     "not dead"
   ],
   "dependencies": {
+    "@base-ui/react": "^1.4.1",
     "@codesandbox/sandpack-react": "latest",
     "@codesandbox/sandpack-themes": "latest",
     "@hookform/resolvers": "^3.9.1",

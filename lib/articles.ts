@@ -25,7 +25,9 @@ export interface Post {
   coverImage?: string
   videoImage?: string
   videoPoster?: string
+  coverComponent?: string
   showcase?: boolean
+  draft?: boolean
   tags: string[]
   components: string[]
 }
@@ -60,7 +62,9 @@ export async function getAllPosts(): Promise<PostMeta[]> {
       coverImage: withContentHash(data.coverImage),
       videoImage: withContentHash(data.videoImage),
       videoPoster: posterFor(data.videoImage),
+      coverComponent: data.coverComponent,
       showcase: data.showcase || false,
+      draft: data.draft || false,
       tags: data.tags || [],
       components: data.components || []
     }
@@ -86,7 +90,9 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
     coverImage: withContentHash(data.coverImage),
     videoImage: withContentHash(data.videoImage),
     videoPoster: posterFor(data.videoImage),
+    coverComponent: data.coverComponent,
     showcase: data.showcase || false,
+    draft: data.draft || false,
     tags: data.tags || [],
     components: data.components || []
   }
