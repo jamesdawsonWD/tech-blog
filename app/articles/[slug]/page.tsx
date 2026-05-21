@@ -128,7 +128,11 @@ export default async function BlogPost({
     rehypePlugins: [rehypeSectionize, rehypeAssetHash],
   });
 
+  const showScrollPong = usedComponentNames.includes("ScrollPong");
+
   return (
+    <>
+      {showScrollPong && <ScrollPong />}
     <div className="min-h-screen container max-w-3xl py-6 lg:py-12">
         {/* Breadcrumb */}
         <nav
@@ -235,5 +239,6 @@ export default async function BlogPost({
           </div>
         )}
     </div>
+    </>
   );
 }

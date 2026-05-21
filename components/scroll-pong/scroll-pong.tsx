@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
 
 /**
  * Pong, where YOUR paddle is the browser scrollbar.
@@ -33,10 +34,10 @@ export default function ScrollPong() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const PADDLE_T = 12;
+    const PADDLE_T = 8;
+    const PADDLE_H = 64;
     const CPU_X = 24;
-    const CPU_H = 96;
-    const R = 9;
+    const R = 7;
     const BASE_SPEED = 4.2;
     const MAX_SPEED = 13;
     const CPU_MAX = 4.6;
@@ -47,27 +48,27 @@ export default function ScrollPong() {
     let cpuY = 0;
     let running = !document.hidden;
 
+    // Read the live foreground color so ball + both paddles match the article
+    // text exactly across themes, including any custom CSS-variable overrides.
+    const colorProbe = document.createElement("span");
+    colorProbe.style.cssText =
+      "position:absolute;visibility:hidden;color:var(--foreground)";
+    document.body.appendChild(colorProbe);
+    const readForeground = () =>
+      getComputedStyle(colorProbe).color || "rgb(28,25,23)";
+    let strokeColor = readForeground();
+
     const darkMq = window.matchMedia("(prefers-color-scheme: dark)");
-    type Palette = { ball: string; cpu: string; thumb: string; glow: string };
-    const paletteFor = (dark: boolean): Palette =>
-      dark
-        ? {
-            ball: "rgb(250, 250, 249)",
-            cpu: "rgba(214, 211, 209, 0.7)",
-            thumb: "rgba(245, 245, 244, 0.85)",
-            glow: "rgba(0, 0, 0, 0.45)",
-          }
-        : {
-            ball: "rgb(28, 25, 23)",
-            cpu: "rgba(120, 113, 108, 0.55)",
-            thumb: "rgba(68, 64, 60, 0.7)",
-            glow: "rgba(0, 0, 0, 0.25)",
-          };
-    let palette = paletteFor(darkMq.matches);
-    const onTheme = (e: MediaQueryListEvent) => {
-      palette = paletteFor(e.matches);
+    const refreshColor = () => {
+      strokeColor = readForeground();
     };
-    darkMq.addEventListener("change", onTheme);
+    darkMq.addEventListener("change", refreshColor);
+    // Theme toggle changes the `.dark` class on <html>, not the system pref.
+    const themeObserver = new MutationObserver(refreshColor);
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class", "data-theme", "style"],
+    });
 
     const ball = { x: 0, y: 0, vx: 0, vy: 0, speed: BASE_SPEED };
     let serveTo: 1 | -1 = 1;
@@ -96,13 +97,12 @@ export default function ScrollPong() {
     const scrollbarThumb = () => {
       const docH = document.documentElement.scrollHeight;
       const scrollMax = docH - H;
-      const thumbH = Math.max(56, H * (H / docH));
       const t =
         scrollMax > 0
           ? Math.min(1, Math.max(0, window.scrollY / scrollMax))
           : 0.5;
-      const y = t * (H - thumbH);
-      return { y, h: thumbH, x: W - PADDLE_T };
+      const y = t * (H - PADDLE_H);
+      return { y, h: PADDLE_H, x: W - PADDLE_T };
     };
 
     resize();
@@ -125,9 +125,9 @@ export default function ScrollPong() {
 
         const thumb = scrollbarThumb();
 
-        const target = ball.y - CPU_H / 2;
+        const target = ball.y - PADDLE_H / 2;
         cpuY += Math.max(-CPU_MAX, Math.min(CPU_MAX, target - cpuY));
-        cpuY = Math.max(0, Math.min(H - CPU_H, cpuY));
+        cpuY = Math.max(0, Math.min(H - PADDLE_H, cpuY));
 
         const bounce = (offset: number, dir: 1 | -1) => {
           ball.speed = Math.min(MAX_SPEED, ball.speed * 1.045);
@@ -155,10 +155,10 @@ export default function ScrollPong() {
           prevX - R >= planeL &&
           ball.x - R <= planeL &&
           ball.y >= cpuY - R &&
-          ball.y <= cpuY + CPU_H + R
+          ball.y <= cpuY + PADDLE_H + R
         ) {
           ball.x = planeL + R;
-          bounce((ball.y - (cpuY + CPU_H / 2)) / (CPU_H / 2), 1);
+          bounce((ball.y - (cpuY + PADDLE_H / 2)) / (PADDLE_H / 2), 1);
         }
 
         if (ball.x - R > W) {
@@ -175,21 +175,17 @@ export default function ScrollPong() {
       ctx.clearRect(0, 0, W, H);
       const thumb = scrollbarThumb();
 
-      ctx.fillStyle = palette.cpu;
-      roundRect(ctx, CPU_X, cpuY, PADDLE_T, CPU_H, 6);
+      ctx.fillStyle = strokeColor;
+
+      roundRect(ctx, CPU_X, cpuY, PADDLE_T, PADDLE_H, 4);
       ctx.fill();
 
-      ctx.fillStyle = palette.thumb;
-      roundRect(ctx, thumb.x - 1, thumb.y, PADDLE_T, thumb.h, 6);
+      roundRect(ctx, thumb.x, thumb.y, PADDLE_T, thumb.h, 4);
       ctx.fill();
 
       ctx.beginPath();
       ctx.arc(ball.x, ball.y, R, 0, Math.PI * 2);
-      ctx.fillStyle = palette.ball;
-      ctx.shadowColor = palette.glow;
-      ctx.shadowBlur = 10;
       ctx.fill();
-      ctx.shadowBlur = 0;
 
       raf = requestAnimationFrame(step);
     };
@@ -211,20 +207,15 @@ export default function ScrollPong() {
       window.removeEventListener("resize", onResize);
       document.removeEventListener("visibilitychange", onVis);
       window.removeEventListener("scroll", onScroll);
-      darkMq.removeEventListener("change", onTheme);
+      darkMq.removeEventListener("change", refreshColor);
+      themeObserver.disconnect();
+      colorProbe.remove();
     };
   }, [reducedMotion]);
 
   if (reducedMotion) {
     return (
-      <div
-        aria-hidden
-        className="fixed top-4 left-1/2 z-50 -translate-x-1/2 pointer-events-none select-none text-center"
-      >
-        <div className="font-mono text-[11px] text-stone-400 dark:text-stone-500">
-          pong disabled — reduced motion
-        </div>
-      </div>
+      <ScoreIsland cpu={0} you={0} hint="pong disabled — reduced motion" />
     );
   }
 
@@ -233,22 +224,77 @@ export default function ScrollPong() {
       <canvas
         ref={canvasRef}
         aria-hidden
-        className="fixed inset-0 z-50 pointer-events-none"
+        className="fixed inset-0 z-[60] pointer-events-none"
       />
-      <div
-        aria-hidden
-        className="fixed top-4 left-1/2 z-50 -translate-x-1/2 pointer-events-none select-none text-center"
-      >
-        <div className="font-mono text-sm tabular-nums text-stone-500 dark:text-stone-400">
-          CPU {score.cpu} · {score.you} YOU
-        </div>
-        {!started && (
-          <div className="mt-1 font-mono text-[11px] text-stone-400 dark:text-stone-500">
-            scroll to play — you are the scrollbar
-          </div>
-        )}
-      </div>
+      <ScoreIsland
+        cpu={score.cpu}
+        you={score.you}
+        hint={!started ? "scroll to play — you are the scrollbar" : undefined}
+      />
     </>
+  );
+}
+
+function ScoreIsland({
+  cpu,
+  you,
+  hint,
+}: {
+  cpu: number;
+  you: number;
+  hint?: string;
+}) {
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none fixed inset-x-0 top-4 z-[70] flex flex-col items-center"
+    >
+      <motion.div
+        initial={{ y: -60, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ type: "spring", bounce: 0.4, duration: 0.8, delay: 0.15 }}
+        style={{ borderRadius: 28 }}
+        className="overflow-hidden bg-black shadow-[0_8px_32px_rgba(0,0,0,0.3)]"
+      >
+        <div className="flex h-[36px] items-center gap-3 px-4 select-none">
+          <span className="font-mono text-[11px] uppercase tracking-wider text-white/50">
+            CPU
+          </span>
+          <motion.span
+            key={`cpu-${cpu}`}
+            initial={{ scale: 1.4, color: "rgb(248 113 113)" }}
+            animate={{ scale: 1, color: "rgb(255 255 255)" }}
+            transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+            className="font-mono text-sm tabular-nums font-semibold"
+          >
+            {cpu}
+          </motion.span>
+          <div className="h-3 w-px bg-white/15" />
+          <motion.span
+            key={`you-${you}`}
+            initial={{ scale: 1.4, color: "rgb(74 222 128)" }}
+            animate={{ scale: 1, color: "rgb(255 255 255)" }}
+            transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+            className="font-mono text-sm tabular-nums font-semibold"
+          >
+            {you}
+          </motion.span>
+          <span className="font-mono text-[11px] uppercase tracking-wider text-white/50">
+            You
+          </span>
+        </div>
+      </motion.div>
+      {hint && (
+        <motion.div
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6, duration: 0.4 }}
+          className="mt-2 font-mono text-[11px] text-stone-500 dark:text-stone-400"
+        >
+          {hint}
+        </motion.div>
+      )}
+    </div>
   );
 }
 
