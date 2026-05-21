@@ -1,0 +1,272 @@
+/* Article-route-only styles. Imported by app/articles/[slug]/page.tsx and
+   app/privacy-policy/page.tsx so they never load on /, which has no prose
+   or MDX content. */
+
+/* MDX Content Styles */
+.mdx-content h1 {
+  @apply text-3xl font-bold mt-8 mb-4;
+}
+
+.mdx-content h2 {
+  @apply text-2xl font-bold mt-6 mb-3;
+}
+
+.mdx-content h3 {
+  @apply text-xl font-bold mt-5 mb-2;
+}
+
+.mdx-content p {
+  @apply my-4;
+}
+
+.mdx-content a {
+  @apply text-blue-600 dark:text-blue-400 hover:underline;
+}
+
+.mdx-content ul {
+  @apply list-disc pl-6 my-4;
+}
+
+.mdx-content ol {
+  @apply list-decimal pl-6 my-4;
+}
+
+.mdx-content li {
+  @apply mb-1;
+}
+
+.mdx-content blockquote {
+  @apply border-l-4 border-gray-300 dark:border-gray-700 pl-4 italic my-4;
+}
+
+/* Curly quote marks for the <Quote> / <Definition> primitives. Rendered
+   inline (in normal flow, so an ancestor's overflow can never clip them)
+   in a serif face for the elegant swirly glyphs, at full text color. */
+.pull-quote {
+  position: relative;
+}
+.pull-quote > p:first-of-type::before {
+  content: "\201C";
+  font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  font-size: 1.5em;
+  line-height: 0;
+  vertical-align: -0.32em;
+  margin-right: 0.04em;
+  color: currentColor;
+}
+.pull-quote > p:last-of-type::after {
+  content: "\201D";
+  font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  font-size: 1.5em;
+  line-height: 0;
+  vertical-align: -0.32em;
+  margin-left: 0.04em;
+  color: currentColor;
+}
+
+.mdx-content code:not(pre code) {
+  @apply bg-gray-100 dark:bg-gray-800 rounded px-1 py-0.5;
+}
+
+.mdx-content .code-block {
+  @apply my-6 rounded-lg border overflow-hidden;
+}
+
+.mdx-content .code-header {
+  @apply bg-muted px-4 py-2 text-sm text-muted-foreground;
+}
+
+.mdx-content pre {
+  @apply p-4 overflow-x-auto;
+}
+
+.mdx-content hr {
+  @apply my-8 border-t border-gray-200 dark:border-gray-800;
+}
+
+.prose pre {
+  @apply bg-black text-white  p-6 rounded-xl overflow-x-auto;
+}
+
+/* Inline code: soft rounded "badge" pill (matches the secondary token —
+   light lime-grey in light mode, dark grey in dark mode), mono font. */
+.prose code {
+  @apply font-mono font-normal text-[0.9em] px-1.5 py-0.5 rounded-md bg-secondary text-secondary-foreground;
+}
+
+.prose a {
+  @apply text-lime-600 hover:text-lime-700;
+}
+.prose code::before,
+.prose code::after {
+  content: none;
+}
+
+/* Override for code inside pre to avoid styling it */
+.prose pre code {
+  @apply p-0 bg-transparent text-inherit;
+}
+
+
+.code-scrollbar {
+  scrollbar-color: #78716c transparent; /* Firefox: thumb + transparent track */
+}
+
+
+.code-scrollbar::-webkit-scrollbar-track {
+  background: transparent; /* effectively hides it */
+}
+
+.code-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #a4a4a4;
+  border-radius: 6px;
+  border: none; /* remove fake padding if not needed */
+}
+
+/* Hide scrollbar arrows (most reliable cross-browser combo) */
+.code-scrollbar::-webkit-scrollbar-button {
+  display: none;
+  height: 0;
+  width: 0;
+  background: transparent;
+}
+
+.code-scrollbar::-webkit-scrollbar-button:single-button {
+  display: block;
+  height: 0;
+  width: 0;
+  background: transparent;
+}
+
+/* Article spacing system — modelled on Vercel's customer-story rhythm.
+   One uniform gap between every block, a large "new context" gap before
+   each heading, and spacing (not borders) to separate sections. */
+:root {
+  --article-rhythm: 1.5rem; /* 24px — gap between every block */
+  --article-rhythm-lg: calc(
+    var(--article-rhythm) * 4
+  ); /* 6rem — embedded media/components/quotes/definitions/code */
+  --article-section-gap: 3rem; /* 48px — breathing room above an h2 */
+}
+
+/* Article section: stacked, single column at all viewports. The space
+   above a section is owned entirely by its padding-top (Vercel-style:
+   one side owns the gap), so no border is needed to separate them. */
+.article-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--article-rhythm);
+  padding-top: var(--article-section-gap);
+  padding-bottom: 0;
+}
+
+/* Sections that lead with body copy (no heading) only need the base
+   rhythm above them, not the full heading gap. */
+.article-section:not(:has(.section-heading h1, .section-heading h2)) {
+  padding-top: var(--article-rhythm);
+}
+
+.article-section:first-child {
+  padding-top: 0;
+}
+
+.section-heading h1 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin: 0;
+}
+
+/* 24px → 32px, matching Vercel's text-heading-24 md:text-heading-32. */
+.section-heading h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  margin: 0;
+}
+
+@media (min-width: 768px) {
+  .section-heading h2 {
+    font-size: 2rem;
+  }
+}
+
+.section-content {
+  @apply prose prose-stone dark:prose-invert max-w-none;
+  min-width: 0;
+  /* Body copy: 17px → 18px, line-height tuned between Vercel's tight
+     1.55 and prose's loose 1.75 for this measure. */
+  font-size: 1.0625rem;
+  line-height: 1.65;
+}
+
+@media (min-width: 1024px) {
+  .section-content {
+    font-size: 1.125rem;
+  }
+}
+
+/* Replace prose's per-element em-based margins with one fixed rhythm
+   so every block sits exactly --article-rhythm apart, like the gap-6
+   column on the Vercel article. */
+.section-content
+  :is(p, ul, ol, pre, blockquote, figure, table, hr, img):not(
+    .not-prose,
+    .not-prose *
+  ) {
+  margin-top: var(--article-rhythm);
+  margin-bottom: var(--article-rhythm);
+}
+
+/* Shiki code blocks own no vertical margin — the .code-block wrapper
+   provides the rhythm spacing. Without this the rule above re-adds
+   --article-rhythm top/bottom to the inner <pre class="shiki">. */
+.section-content pre.shiki {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+/* List items stay tight to each other (Vercel groups them as one unit). */
+.section-content :is(ul, ol) > li {
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+/* Images: framed in a light bordered card with vast breathing room —
+   80px/40px desktop, halved on mobile, mirroring the Vercel figure.
+   Scoped to real content media: `.not-prose` subtrees (the Quote /
+   Definition pull blocks and their avatars) keep their own chrome. */
+.section-content :is(img, figure):not(.not-prose, .not-prose *) {
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  padding: 0.5rem;
+  background: hsl(var(--card));
+  margin-top: var(--article-rhythm-lg);
+  margin-bottom: var(--article-rhythm-lg);
+}
+
+.section-content figure:not(.not-prose) img {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  background: none;
+}
+
+.section-content > *:first-child {
+  margin-top: 0 !important;
+}
+
+.section-content > *:last-child {
+  margin-bottom: 0 !important;
+}
+
+/* Skip rendering below-fold article sections until near the viewport.
+   contain-intrinsic-size: auto <fallback> lets the browser remember the
+   real size after first render and use the fallback only before first paint,
+   which avoids CLS on scroll-restore. */
+.article-section {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 600px;
+}

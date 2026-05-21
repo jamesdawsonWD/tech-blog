@@ -6,8 +6,22 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { PostHogProvider } from "@/components/PostHogProvider";
 import { Analytics } from "@vercel/analytics/next"
 
-const inter = Inter({ subsets: ["latin"] });
-const inriaSerif = Inria_Serif({ subsets: ["latin"], weight: ["300", "400", "700"], style: ["normal", "italic"], variable: "--font-inria-serif" });
+// Inter is the body font. We do NOT preload it because the LCP element on /
+// is the h1 (Inria_Serif italic 700), and Inter would compete with it on the
+// shared font-priority bucket. Body text swaps from fallback once CSS lands;
+// `display: swap` keeps FCP unblocked.
+const inter = Inter({ subsets: ["latin"], display: "swap", preload: false });
+
+// Inria_Serif is only used by the homepage h1 (font-bold italic) — the LCP
+// element. Loading all 6 weight×style combos preload-competes with the actual
+// LCP font on cold loads and pushes the swap (and thus LCP) out by ~1s.
+const inriaSerif = Inria_Serif({
+  subsets: ["latin"],
+  weight: "700",
+  style: "italic",
+  display: "swap",
+  variable: "--font-inria-serif",
+});
 
 export const metadata: Metadata = {
   title: "Hi, I'm James",

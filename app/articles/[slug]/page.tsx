@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import ReactDOM from "react-dom";
 import { evaluate } from "@mdx-js/mdx";
+import "../article-styles.css";
 import * as runtime from "react/jsx-runtime";
 import { getAllPosts, getPostBySlug, shouldShowDrafts } from "@/lib/articles";
 import Image from "next/image";

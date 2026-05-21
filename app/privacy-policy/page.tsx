@@ -1,5 +1,6 @@
 import type { Metadata } from "next/types";
 import ObfuscatedEmail from "@/components/obfuscated-email";
+import "../articles/article-styles.css";
 
 export const metadata: Metadata = {
   title: "Privacy Policy — Penumbra Compliance LTD",
