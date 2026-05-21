@@ -4,7 +4,7 @@ export default function Footer() {
       {/* Icons */}
       <div className="flex justify-center gap-4 relative z-10 mb-6">
         <a
-          href="https://x.com/on0x"
+          href="https://x.com/_on0x"
           target="_blank"
           rel="noopener noreferrer"
           className="rounded-xl bg-[#eff2e8] p-2 hover:opacity-80 transition"

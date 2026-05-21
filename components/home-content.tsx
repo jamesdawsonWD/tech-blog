@@ -108,7 +108,7 @@ export default function HomeContent({ posts }: { posts: PostMeta[] }) {
 
           <div className="mt-6 flex items-center gap-4">
             <a
-              href="https://x.com/on0x"
+              href="https://x.com/_on0x"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Follow James on X (formerly Twitter)"
