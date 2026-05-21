@@ -35,7 +35,7 @@ export default function ScrollPong() {
     if (!ctx) return;
 
     const PADDLE_T = 8;
-    const PADDLE_H = 64;
+    const MIN_PADDLE_H = 40;
     const CPU_X = 24;
     const R = 7;
     const BASE_SPEED = 4.2;
@@ -97,12 +97,13 @@ export default function ScrollPong() {
     const scrollbarThumb = () => {
       const docH = document.documentElement.scrollHeight;
       const scrollMax = docH - H;
+      const thumbH = Math.max(MIN_PADDLE_H, H * (H / docH));
       const t =
         scrollMax > 0
           ? Math.min(1, Math.max(0, window.scrollY / scrollMax))
           : 0.5;
-      const y = t * (H - PADDLE_H);
-      return { y, h: PADDLE_H, x: W - PADDLE_T };
+      const y = t * (H - thumbH);
+      return { y, h: thumbH, x: W - PADDLE_T };
     };
 
     resize();
@@ -110,6 +111,9 @@ export default function ScrollPong() {
     cpuY = H / 2;
 
     const step = () => {
+      const thumb = scrollbarThumb();
+      const paddleH = thumb.h;
+
       if (running) {
         const prevX = ball.x;
         ball.x += ball.vx;
@@ -123,11 +127,9 @@ export default function ScrollPong() {
           ball.vy = -Math.abs(ball.vy);
         }
 
-        const thumb = scrollbarThumb();
-
-        const target = ball.y - PADDLE_H / 2;
+        const target = ball.y - paddleH / 2;
         cpuY += Math.max(-CPU_MAX, Math.min(CPU_MAX, target - cpuY));
-        cpuY = Math.max(0, Math.min(H - PADDLE_H, cpuY));
+        cpuY = Math.max(0, Math.min(H - paddleH, cpuY));
 
         const bounce = (offset: number, dir: 1 | -1) => {
           ball.speed = Math.min(MAX_SPEED, ball.speed * 1.045);
@@ -155,10 +157,10 @@ export default function ScrollPong() {
           prevX - R >= planeL &&
           ball.x - R <= planeL &&
           ball.y >= cpuY - R &&
-          ball.y <= cpuY + PADDLE_H + R
+          ball.y <= cpuY + paddleH + R
         ) {
           ball.x = planeL + R;
-          bounce((ball.y - (cpuY + PADDLE_H / 2)) / (PADDLE_H / 2), 1);
+          bounce((ball.y - (cpuY + paddleH / 2)) / (paddleH / 2), 1);
         }
 
         if (ball.x - R > W) {
@@ -173,14 +175,19 @@ export default function ScrollPong() {
       }
 
       ctx.clearRect(0, 0, W, H);
-      const thumb = scrollbarThumb();
 
+      // Track — faint full-height rail behind the player paddle
       ctx.fillStyle = strokeColor;
+      ctx.globalAlpha = 0.12;
+      roundRect(ctx, thumb.x, 4, PADDLE_T, H - 8, PADDLE_T / 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
 
-      roundRect(ctx, CPU_X, cpuY, PADDLE_T, PADDLE_H, 4);
+      // Player paddle (right) + CPU paddle (left) — same width, same height
+      roundRect(ctx, CPU_X, cpuY, PADDLE_T, paddleH, PADDLE_T / 2);
       ctx.fill();
 
-      roundRect(ctx, thumb.x, thumb.y, PADDLE_T, thumb.h, 4);
+      roundRect(ctx, thumb.x, thumb.y, PADDLE_T, thumb.h, PADDLE_T / 2);
       ctx.fill();
 
       ctx.beginPath();
