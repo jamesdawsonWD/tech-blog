@@ -42,6 +42,7 @@ const RadialButtonDemo = dynamic(() => import("@/components/radial-button/radial
 const DemoFrame = dynamic(() => import("@/components/perf-tabs/demo-frame"));
 const CmdKDemo = dynamic(() => import("@/components/cmd-k/cmd-k-demo"));
 const TypeaheadDemo = dynamic(() => import("@/components/typeahead/typeahead-demo"));
+const ScrollPong = dynamic(() => import("@/components/scroll-pong/scroll-pong"));
 
 export async function generateStaticParams() {
   const posts = await getAllPosts();
@@ -108,6 +109,7 @@ export default async function BlogPost({
     DemoFrame,
     CmdKDemo,
     TypeaheadDemo,
+    ScrollPong,
   };
 
   type ComponentName = keyof typeof AllClientComponents;

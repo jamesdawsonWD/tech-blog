@@ -1,0 +1,69 @@
+---
+title: "I turned my scrollbar into Pong"
+description: "A short history of Pong, played out across the article you are currently reading. Your scrollbar is the right paddle."
+date: "2026-05-21"
+author:
+  name: "James Dawson"
+  avatar: "/avatar.jpg"
+showcase: true
+tags: ["frontend", "games", "history", "canvas"]
+components: ["ScrollPong"]
+---
+
+<ScrollPong />
+
+## Your scrollbar is the paddle
+
+The right-hand paddle in this article is your scrollbar. As you scroll, it moves up and down — same gesture you'd use to read anything else, except now it has a job to do. The CPU plays on the left. The ball never stops, but the canvas is `pointer-events: none`, so nothing about the game blocks the words.
+
+I'll explain how I built it at the end. First, a quick history of the thing being parodied.
+
+## 1972, in a back office in Santa Clara
+
+Pong was not the first video game, but it was the first one that mattered commercially. The story starts at a small new company called Atari, founded in 1972 by Nolan Bushnell and Ted Dabney. Their first arcade title — *Computer Space*, the previous year — had been a flop. Too complicated, too cerebral, too many controls. The lesson stuck.
+
+Bushnell hired an engineer named Allan Alcorn, who had no background in games, and gave him what was essentially a training exercise: build a simple table-tennis game. Two paddles, a ball, a score. Source: Wikipedia's [article on Pong](https://en.wikipedia.org/wiki/Pong).
+
+Alcorn took the brief and ran past it. The paddle was divided into eight zones so the angle of the return depended on where you hit it. The ball sped up over time, so a long rally became its own kind of pressure. A bug in the circuit meant the paddle couldn't quite reach the top of the screen — Alcorn left it in, because it gave the game a natural difficulty ceiling. The whole thing was wired together with cheap TTL logic and a black-and-white TV that cost about seventy-five dollars.
+
+## The bar test
+
+In August 1972 the prototype was dropped into Andy Capp's Tavern in Sunnyvale to see if anyone would play it. People played it a lot.
+
+The story goes that the coin mechanism eventually jammed because the cabinet was so full of quarters there was nowhere for new ones to go. Whether the literal mechanical failure happened exactly as recounted is a separate question; what's not in dispute is that the machine was earning roughly thirty-five to forty dollars a day, on quarter plays, in one suburban bar. That was the signal.
+
+Atari shipped Pong commercially that November. By the end of 1974 they'd built around eight thousand units, and the rest of the industry had stopped pretending Pong didn't exist — Ramtek, Nutting, Sega, and Taito all had clones in the field within months.
+
+## Magnavox, and the lawsuit nobody talks about
+
+Pong was not invented from nothing. Earlier the same year, Bushnell had attended a Magnavox demo of their new home console, the Odyssey, which already included a ping-pong game designed by Ralph Baer. Baer had been documenting his work on what he called the "Brown Box" since 1966. There was a guest book at the Magnavox event with Bushnell's signature in it.
+
+In April 1974 Magnavox sued Atari and several other clone-makers. Atari settled in 1976 — about $1.5 million, paid in instalments, plus a licensing arrangement that gave Magnavox a window into Atari's product pipeline. The other defendants fought it and lost. There's a credible argument that Atari delayed announcing the 2600 to avoid having to share it with Magnavox under that agreement.
+
+It's the part of the story that doesn't fit the founder-myth version, which is why it rarely makes the highlight reel.
+
+## Home Pong, 1975
+
+The arcade business was good, but the obvious next move was a version you could plug into your television. The codename inside Atari was "Darlene". Alcorn worked with engineer Harold Lee to fit the whole game onto a single custom chip.
+
+Toy retailers were unimpressed. The price felt high, the concept felt niche. Sears wasn't unimpressed — their sporting-goods buyer, Tom Quinn, offered Atari an exclusive deal and asked for 150,000 units, double what Bushnell had been ready to commit to. Don Valentine put up the money for a new factory. The console shipped in late 1975 as "Tele-Games", branded by Sears, at $98.95 plus a separate $7.95 for the power adapter.
+
+It sold out the holiday season. Atari's own branded version added another fifty thousand units. By any reasonable measure, the home video game industry started here.
+
+## So why do this?
+
+Pong is the cleanest possible parody of an interface metaphor. Two paddles, one ball, one rule. Every browser already has a thing that moves up and down the right edge of the page in response to your input — the scrollbar — and once you see the resemblance, it's hard to un-see.
+
+The implementation is small. A `<canvas>` pinned `fixed inset-0` with `pointer-events: none`, a `requestAnimationFrame` loop, and a right paddle that's recomputed every frame from `window.scrollY / (scrollHeight - innerHeight)`. The size of the paddle scales with the viewport-to-document ratio, the same way a real scrollbar thumb does. The CPU on the left has a capped tracking speed so it's beatable if you read slowly and steadily — and unbeatable if you panic.
+
+The canvas is a dynamic import in a separate JavaScript chunk, so articles that don't use it don't pay for it. It bails out completely if you have `prefers-reduced-motion: reduce` set, and it pauses the animation loop when the tab is hidden. Cap on `devicePixelRatio` is 2, which keeps the per-frame fill cost sane on high-DPI displays.
+
+## Score check
+
+If the CPU is winning, you're reading too fast. If you're winning, you're reading at exactly the right pace. If it's still 0–0, you haven't scrolled yet — which means you read this on a phone, or you read very fast, or this article is shorter than I think.
+
+Either way, thanks for playing.
+
+---
+
+*Facts and dates in this piece are summarized from the Wikipedia article on [Pong](https://en.wikipedia.org/wiki/Pong). Any errors are mine.*
