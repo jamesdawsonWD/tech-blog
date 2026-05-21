@@ -113,7 +113,7 @@ export default function ScrollPong() {
     const step = () => {
       const thumb = scrollbarThumb();
       const playerH = thumb.h;
-      const cpuH = playerH / 3;
+      const cpuH = (playerH * 2) / 3;
 
       if (running) {
         const prevX = ball.x;
