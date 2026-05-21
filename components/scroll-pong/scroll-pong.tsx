@@ -112,7 +112,8 @@ export default function ScrollPong() {
 
     const step = () => {
       const thumb = scrollbarThumb();
-      const paddleH = thumb.h;
+      const playerH = thumb.h;
+      const cpuH = playerH / 3;
 
       if (running) {
         const prevX = ball.x;
@@ -127,9 +128,9 @@ export default function ScrollPong() {
           ball.vy = -Math.abs(ball.vy);
         }
 
-        const target = ball.y - paddleH / 2;
+        const target = ball.y - cpuH / 2;
         cpuY += Math.max(-CPU_MAX, Math.min(CPU_MAX, target - cpuY));
-        cpuY = Math.max(0, Math.min(H - paddleH, cpuY));
+        cpuY = Math.max(0, Math.min(H - cpuH, cpuY));
 
         const bounce = (offset: number, dir: 1 | -1) => {
           ball.speed = Math.min(MAX_SPEED, ball.speed * 1.045);
@@ -157,10 +158,10 @@ export default function ScrollPong() {
           prevX - R >= planeL &&
           ball.x - R <= planeL &&
           ball.y >= cpuY - R &&
-          ball.y <= cpuY + paddleH + R
+          ball.y <= cpuY + cpuH + R
         ) {
           ball.x = planeL + R;
-          bounce((ball.y - (cpuY + paddleH / 2)) / (paddleH / 2), 1);
+          bounce((ball.y - (cpuY + cpuH / 2)) / (cpuH / 2), 1);
         }
 
         if (ball.x - R > W) {
@@ -183,8 +184,8 @@ export default function ScrollPong() {
       ctx.fill();
       ctx.globalAlpha = 1;
 
-      // Player paddle (right) + CPU paddle (left) — same width, same height
-      roundRect(ctx, CPU_X, cpuY, PADDLE_T, paddleH, PADDLE_T / 2);
+      // CPU paddle (left) — 1/3 the player paddle for added difficulty
+      roundRect(ctx, CPU_X, cpuY, PADDLE_T, cpuH, PADDLE_T / 2);
       ctx.fill();
 
       roundRect(ctx, thumb.x, thumb.y, PADDLE_T, thumb.h, PADDLE_T / 2);
